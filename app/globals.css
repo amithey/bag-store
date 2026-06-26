@@ -1,0 +1,111 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --font-sans: "Segoe UI", "Arial", "Noto Sans Hebrew", sans-serif;
+    --font-serif: "Segoe UI", "Arial", "Noto Sans Hebrew", sans-serif;
+    --cream: #f7f3ec;
+    --bone: #ece3d6;
+    --ink: #111111;
+    --charcoal: #202020;
+    --taupe: #7a6248;
+    --gold: #b88a45;
+    --muted: #686057;
+    --line: #d8cab8;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    min-height: 100vh;
+    font-family: var(--font-sans), system-ui, sans-serif;
+    font-weight: 400;
+    color: var(--ink);
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.72), rgba(247,243,236,0.9) 34%, rgba(238,229,216,0.78)),
+      var(--cream);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-serif), var(--font-sans), sans-serif;
+    font-weight: 500;
+    letter-spacing: 0;
+  }
+
+  ::selection {
+    background: var(--ink);
+    color: var(--cream);
+  }
+}
+
+@layer components {
+  .eyebrow {
+    @apply font-sans text-[11px] font-bold uppercase text-taupe;
+    letter-spacing: 0.22em;
+  }
+
+  .panel {
+    @apply border border-line/80 bg-white/55 shadow-[0_24px_80px_-56px_rgba(17,17,17,0.55)] backdrop-blur-xl;
+  }
+
+  .soft-ring {
+    box-shadow:
+      0 0 0 1px rgba(17,17,17,0.08),
+      0 32px 80px -52px rgba(17,17,17,0.65);
+  }
+
+  .button-dark {
+    @apply inline-flex items-center justify-center bg-ink px-6 py-4 text-[12px] font-bold uppercase tracking-[0.22em] text-cream transition duration-300 hover:bg-[#33281f];
+  }
+
+  .button-light {
+    @apply inline-flex items-center justify-center border border-ink/20 bg-white/65 px-6 py-4 text-[12px] font-bold uppercase tracking-[0.22em] text-ink transition duration-300 hover:border-ink hover:bg-white;
+  }
+
+  .link-underline {
+    position: relative;
+    display: inline-block;
+  }
+
+  .link-underline::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    bottom: -5px;
+    height: 1px;
+    background: currentColor;
+    transform: scaleX(0.55);
+    transform-origin: right center;
+    opacity: 0.45;
+    transition: transform 360ms ease, opacity 360ms ease;
+  }
+
+  .link-underline:hover::after {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+
+  .divider-gold {
+    display: inline-block;
+    width: 42px;
+    height: 1px;
+    background: var(--gold);
+  }
+
+  .scroll-cue {
+    animation: scroll-cue 2.4s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+  }
+
+  @keyframes scroll-cue {
+    0% { transform: translateY(-100%); opacity: 0; }
+    20% { opacity: 1; }
+    80% { opacity: 1; }
+    100% { transform: translateY(300%); opacity: 0; }
+  }
+}
