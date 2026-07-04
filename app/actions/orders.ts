@@ -9,45 +9,50 @@ import {
 import { sendOrderEmails } from "@/lib/email";
 import { sendWhatsAppOrderAlert } from "@/lib/whatsapp";
 import { saveOrderRecord } from "@/lib/supabaseOrders";
+import { getProducts } from "@/lib/supabaseProducts";
 import { checkRateLimit } from "@/lib/rateLimit";
 import { assertSameOrigin, getClientIpKey } from "@/lib/requestSecurity";
 
 const EmailSchema = z
   .string()
   .trim()
+  .max(254, "כתובת האימייל ארוכה מדי.")
   .email("אנא הזינו כתובת אימייל תקינה.")
   .regex(
     /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/,
     "אנא הזינו כתובת אימייל אמיתית באנגלית, למשל name@example.com."
   );
 
+// Length caps protect against abuse (giant payloads flooding emails, the
+// database and WhatsApp messages) without affecting normal customers.
 const OrderSchema = z.object({
-  name: z.string().trim().min(2, "אנא הזינו שם מלא."),
+  name: z.string().trim().min(2, "אנא הזינו שם מלא.").max(80, "השם ארוך מדי."),
   email: EmailSchema,
   phone: z
     .string()
     .trim()
     .min(9, "אנא הזינו מספר טלפון תקין, למשל 0501234567.")
+    .max(20, "מספר הטלפון ארוך מדי.")
     .regex(/^[0-9+\-\s]+$/, "מספר הטלפון יכול להכיל ספרות, רווחים, + או - בלבד."),
-  city: z.string().trim().refine((c) => (ALLOWED_CITIES as readonly string[]).includes(c), {
+  city: z.string().trim().max(60).refine((c) => (ALLOWED_CITIES as readonly string[]).includes(c), {
     message: "אנא בחרו יישוב מרשימת אזורי המסירה.",
   }),
-  address: z.string().trim().min(5, "אנא הזינו כתובת מלאה."),
+  address: z.string().trim().min(5, "אנא הזינו כתובת מלאה.").max(200, "הכתובת ארוכה מדי."),
   paymentMethod: z.enum(["bit", "cash"], {
     errorMap: () => ({ message: "אנא בחרו אמצעי תשלום." }),
   }),
-  notes: z.string().trim().optional(),
-  cart: z.string().min(5, "סל הקניות ריק."),
+  notes: z.string().trim().max(500, "ההערות ארוכות מדי (עד 500 תווים).").optional(),
+  cart: z.string().min(5, "סל הקניות ריק.").max(20000, "סל הקניות גדול מדי."),
 });
 
+// Only the product id and quantity are trusted from the browser — name and
+// price are re-resolved server-side from the real catalog before charging.
 const CartItemSchema = z.object({
   product: z.object({
-    id: z.string(),
-    name: z.string(),
-    priceNum: z.number(),
+    id: z.string().min(1).max(40),
   }),
-  quantity: z.number().int().positive(),
-  engraving: z.string().optional(),
+  quantity: z.number().int().min(1).max(20),
+  engraving: z.string().max(40).optional(),
 });
 
 export type OrderState = {
@@ -110,7 +115,7 @@ export async function submitOrder(
     };
   }
 
-  const cartItemsResult = z.array(CartItemSchema).safeParse(cartJson);
+  const cartItemsResult = z.array(CartItemSchema).max(30).safeParse(cartJson);
   if (!cartItemsResult.success || cartItemsResult.data.length === 0) {
     return {
       status: "error",
@@ -119,8 +124,29 @@ export async function submitOrder(
     };
   }
 
+  // Server-side re-pricing: names and prices always come from the catalog,
+  // never from the browser — so a tampered cart can't change what is charged.
+  const catalog = await getProducts();
+  const catalogById = new Map(catalog.map((product) => [product.id, product]));
+
+  const cartItems = [];
+  for (const item of cartItemsResult.data) {
+    const product = catalogById.get(item.product.id);
+    if (!product) {
+      return {
+        status: "error",
+        errors: { cart: "הסל כולל פריט שכבר אינו זמין." },
+        message: "הסל כולל פריט שכבר אינו זמין. רעננו את העמוד ונסו שוב.",
+      };
+    }
+    cartItems.push({
+      product: { id: product.id, name: product.name, priceNum: product.priceNum },
+      quantity: item.quantity,
+      engraving: item.engraving,
+    });
+  }
+
   const orderId = `SH-${Math.floor(100000 + Math.random() * 900000)}`;
-  const cartItems = cartItemsResult.data;
   const total = cartItems.reduce((sum, item) => sum + item.product.priceNum * item.quantity, 0);
   const cartDescription = cartItems
     .map((item) => {
