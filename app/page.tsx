@@ -7,22 +7,15 @@ import Numbers from "./components/Numbers";
 import Process from "./components/Process";
 import Contact from "./components/Contact";
 import Footer from "./components/Footer";
-import ScrollProgress from "./components/ScrollProgress";
-import CartDrawer from "./components/CartDrawer";
-import ProductModal from "./components/ProductModal";
 import ProductCarousel from "./components/ProductCarousel";
 import { getProducts } from "@/lib/supabaseProducts";
 import { getSiteContent } from "@/lib/siteContent";
+import { absoluteUrl, siteUrl } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
-
 export default async function HomePage() {
   const [products, siteContent] = await Promise.all([getProducts(), getSiteContent()]);
-
-  const absolute = (src: string) =>
-    src.startsWith("http") ? src : `${siteUrl}${src}`;
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -37,11 +30,12 @@ export default async function HomePage() {
       "@type": "Offer",
       priceCurrency: "ILS",
       price: p.priceNum,
+      url: `${siteUrl}/product/${p.id}`,
       itemOffered: {
         "@type": "Product",
         name: p.name.split(" | ")[0],
         description: p.description,
-        image: absolute(p.image),
+        image: absoluteUrl(p.image),
       },
     })),
   };
@@ -53,12 +47,9 @@ export default async function HomePage() {
         // Escape "<" so DB-sourced text (product names/descriptions) can never
         // break out of this script tag — blocks stored XSS via the catalog.
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
+          __html: JSON.stringify(jsonLd).replace(/</g, "\u003c"),
         }}
       />
-      <ScrollProgress />
-      <CartDrawer trustNote={siteContent.trustNote} />
-      <ProductModal />
       <Header />
       <main>
         <Intro />

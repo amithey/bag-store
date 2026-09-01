@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { type Product } from "@/lib/products";
 import { useCart } from "../context/CartContext";
 import { serifDisplay } from "../fonts";
@@ -100,10 +101,12 @@ export default function ProductCarousel({ products }: { products: Product[] }) {
             key={`${p.id}-${i}`}
             className="group relative w-[230px] shrink-0 select-none md:w-[280px]"
           >
-            <button
-              type="button"
-              onClick={() => {
+            <Link
+              href={`/product/${p.id}`}
+              onClick={(e) => {
                 if (ctrl.current.moved > 6) return; // it was a drag, not a click
+                if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+                e.preventDefault();
                 setActiveProduct(p);
               }}
               className="block w-full text-right"
@@ -127,7 +130,7 @@ export default function ProductCarousel({ products }: { products: Product[] }) {
                   </h3>
                 </div>
               </div>
-            </button>
+            </Link>
           </article>
         ))}
       </div>
