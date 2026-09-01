@@ -36,6 +36,9 @@ export async function loginAdmin(_prev: LoginState, formData: FormData): Promise
   }
 
   if (!isValidAdminPassword(password)) {
+    // Slow down brute-force attempts (defense-in-depth alongside the rate limit,
+    // which is per-instance on serverless). Only penalises wrong passwords.
+    await new Promise((resolve) => setTimeout(resolve, 700));
     return { error: "פרטי הכניסה לא נכונים." };
   }
 

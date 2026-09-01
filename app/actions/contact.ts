@@ -8,6 +8,7 @@ import { assertSameOrigin, getClientIpKey } from "@/lib/requestSecurity";
 const EmailSchema = z
   .string()
   .trim()
+  .max(254, "כתובת האימייל ארוכה מדי.")
   .email("אנא הזינו כתובת אימייל תקינה.")
   .regex(
     /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/,
@@ -15,11 +16,15 @@ const EmailSchema = z
   );
 
 const ContactSchema = z.object({
-  name: z.string().trim().min(2, "אנא הזינו את שמכם."),
+  name: z.string().trim().min(2, "אנא הזינו את שמכם.").max(80, "השם ארוך מדי."),
   email: EmailSchema,
-  phone: z.string().trim().optional().or(z.literal("")),
+  phone: z.string().trim().max(30, "מספר הטלפון ארוך מדי.").optional().or(z.literal("")),
   subject: z.enum(["general", "commission", "press", "other"]),
-  message: z.string().trim().min(10, "נשמח לעוד כמה מילים, לפחות 10 תווים."),
+  message: z
+    .string()
+    .trim()
+    .min(10, "נשמח לעוד כמה מילים, לפחות 10 תווים.")
+    .max(2000, "ההודעה ארוכה מדי (עד 2000 תווים)."),
 });
 
 export type ContactState = {
