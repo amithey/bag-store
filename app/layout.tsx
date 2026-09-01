@@ -2,8 +2,12 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { CartProvider } from "./context/CartContext";
 import SmoothScroll from "./components/SmoothScroll";
+import ScrollProgress from "./components/ScrollProgress";
+import CartDrawer from "./components/CartDrawer";
+import ProductModal from "./components/ProductModal";
+import { getSiteContent } from "@/lib/siteContent";
+import { siteUrl } from "@/lib/site";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 const siteTitle = "smadar heymans | תיקי סריגה בעבודת יד";
 const siteDescription =
   "סטודיו בוטיק באשדוד לתיקי סריגה בעבודת יד, במהדורות קטנות ובהזמנה אישית.";
@@ -41,11 +45,15 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  // Cart drawer + product modal are mounted once here (not per-page) so they
+  // work identically on the homepage and on /product/[id] pages.
+  const siteContent = await getSiteContent();
+
   return (
     <html lang="he" dir="rtl">
       <body className="relative bg-cream text-ink font-sans antialiased">
@@ -59,7 +67,12 @@ export default function RootLayout({
           }}
         />
         <SmoothScroll>
-          <CartProvider>{children}</CartProvider>
+          <CartProvider>
+            <ScrollProgress />
+            <CartDrawer trustNote={siteContent.trustNote} />
+            <ProductModal />
+            {children}
+          </CartProvider>
         </SmoothScroll>
       </body>
     </html>

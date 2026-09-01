@@ -5,10 +5,10 @@ import Logo from "./Logo";
 import { useCart } from "../context/CartContext";
 
 const nav = [
-  { href: "#collection", label: "קולקציה" },
-  { href: "#anatomy", label: "פרטים" },
-  { href: "#process", label: "תהליך" },
-  { href: "#contact", label: "הזמנה" },
+  { href: "/#collection", label: "קולקציה" },
+  { href: "/#anatomy", label: "פרטים" },
+  { href: "/#process", label: "תהליך" },
+  { href: "/#contact", label: "הזמנה" },
 ];
 
 export default function Header() {
@@ -26,7 +26,7 @@ export default function Header() {
     <header className={`fixed inset-x-0 top-0 z-50 transition-all duration-500 ${scrolled ? "py-3" : "py-5"}`}>
       <div className="mx-auto flex max-w-editorial items-center justify-between px-4 md:px-10">
         <div className="panel flex h-14 w-full items-center justify-between rounded-full px-4 md:h-16 md:px-6">
-          <a href="#top" aria-label="smadar heymans - דף הבית" className="flex items-center gap-3">
+          <a href="/#top" aria-label="smadar heymans - דף הבית" className="flex items-center gap-3">
             <Logo size="md" />
             <span className="hidden text-[11px] font-bold uppercase tracking-[0.24em] text-muted md:block">
               Handmade Bags

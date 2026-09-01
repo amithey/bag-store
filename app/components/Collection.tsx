@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { type Product } from "@/lib/products";
 import type { SiteContent } from "@/lib/siteContent";
 import { isReadyStock, isSoldOut } from "@/lib/productStock";
@@ -69,9 +70,13 @@ export default function Collection({ products, content }: { products: Product[];
           {filteredProducts.map((p, i) => (
             <FadeIn key={p.id} delay={(i % 3) * 0.05}>
               <article className="group panel overflow-hidden rounded-[26px] bg-white/72 transition duration-500 hover:-translate-y-1 hover:bg-white">
-                <button
-                  type="button"
-                  onClick={() => setActiveProduct(p)}
+                <Link
+                  href={`/product/${p.id}`}
+                  onClick={(e) => {
+                    if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+                    e.preventDefault();
+                    setActiveProduct(p);
+                  }}
                   className="block w-full text-right"
                 >
                   <div className="relative aspect-[4/5] overflow-hidden bg-bone">
@@ -98,7 +103,7 @@ export default function Collection({ products, content }: { products: Product[];
                       </h3>
                     </div>
                   </div>
-                </button>
+                </Link>
 
                 <div className="p-5">
                   <p className="text-[14px] leading-7 text-muted">{p.description}</p>
