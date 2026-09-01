@@ -10,6 +10,7 @@ import { sendOrderEmails } from "@/lib/email";
 import { sendWhatsAppOrderAlert } from "@/lib/whatsapp";
 import { saveOrderRecord } from "@/lib/supabaseOrders";
 import { getProducts } from "@/lib/supabaseProducts";
+import { isSoldOut } from "@/lib/productStock";
 import { checkRateLimit } from "@/lib/rateLimit";
 import { assertSameOrigin, getClientIpKey } from "@/lib/requestSecurity";
 
@@ -137,6 +138,16 @@ export async function submitOrder(
         status: "error",
         errors: { cart: "הסל כולל פריט שכבר אינו זמין." },
         message: "הסל כולל פריט שכבר אינו זמין. רעננו את העמוד ונסו שוב.",
+      };
+    }
+    // Sold-out items are blocked in the UI, but re-check here so a tampered
+    // request can't place an order for a bag that is no longer available.
+    if (isSoldOut(product.stockStatus)) {
+      const label = product.name.split(" | ")[0];
+      return {
+        status: "error",
+        errors: { cart: "פריט בסל אזל מהמלאי." },
+        message: 'הפריט "' + label + '" אזל מהמלאי. הסירו אותו מהסל ונסו שוב.',
       };
     }
     cartItems.push({
