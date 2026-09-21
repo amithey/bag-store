@@ -47,7 +47,7 @@ export default async function HomePage() {
         // Escape "<" so DB-sourced text (product names/descriptions) can never
         // break out of this script tag — blocks stored XSS via the catalog.
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify(jsonLd).replace(/</g, "\u003c"),
+          __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
         }}
       />
       <Header />

@@ -26,7 +26,13 @@ type CartContextType = {
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
-export function CartProvider({ children }: { children: React.ReactNode }) {
+export function CartProvider({
+  children,
+  catalog,
+}: {
+  children: React.ReactNode;
+  catalog: Product[];
+}) {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [activeProduct, setActiveProduct] = useState<Product | null>(null);
@@ -35,15 +41,22 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   // Load cart from localStorage on mount
   useEffect(() => {
     setIsMounted(true);
-    const savedCart = localStorage.getItem("smadar_cart");
-    if (savedCart) {
-      try {
-        setCartItems(JSON.parse(savedCart));
-      } catch (e) {
-        console.error("Failed to parse cart", e);
-      }
+    try {
+      const savedCart = localStorage.getItem("smadar_cart");
+      if (savedCart) setCartItems(syncWithCatalog(JSON.parse(savedCart), catalog));
+    } catch (e) {
+      console.error("Failed to parse cart", e);
     }
+    // Only on mount — later catalog changes are handled by the effect below.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // A saved cart holds a snapshot of each product. Refresh it from the live
+  // catalog so prices/names shown match what the server will charge, and drop
+  // bags that were removed or hidden since.
+  useEffect(() => {
+    if (isMounted) setCartItems((items) => syncWithCatalog(items, catalog));
+  }, [catalog, isMounted]);
 
   // Save cart to localStorage on change
   useEffect(() => {
@@ -60,9 +73,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       );
 
       if (existingIndex > -1) {
-        const nextItems = [...prevItems];
-        nextItems[existingIndex].quantity += 1;
-        return nextItems;
+        return prevItems.map((item, index) =>
+          index === existingIndex ? { ...item, quantity: item.quantity + 1 } : item
+        );
       }
 
       return [...prevItems, { product, quantity: 1, engraving }];
@@ -104,17 +117,22 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
       if (sourceIndex === -1) return prevItems;
 
-      const nextItems = [...prevItems];
       if (targetIndex > -1 && targetIndex !== sourceIndex) {
-        // Merge quantities
-        nextItems[targetIndex].quantity += nextItems[sourceIndex].quantity;
-        // Remove old item
-        nextItems.splice(sourceIndex, 1);
-      } else {
-        // Simply rename
-        nextItems[sourceIndex].engraving = newEngraving.substring(0, 3).toUpperCase();
+        // Merge quantities into the target and drop the source
+        const mergedQuantity = prevItems[targetIndex].quantity + prevItems[sourceIndex].quantity;
+        return prevItems
+          .map((item, index) =>
+            index === targetIndex ? { ...item, quantity: mergedQuantity } : item
+          )
+          .filter((_, index) => index !== sourceIndex);
       }
-      return nextItems;
+
+      // Simply rename
+      return prevItems.map((item, index) =>
+        index === sourceIndex
+          ? { ...item, engraving: newEngraving.substring(0, 3).toUpperCase() }
+          : item
+      );
     });
   };
 
@@ -157,4 +175,23 @@ export function useCart() {
     throw new Error("useCart must be used within a CartProvider");
   }
   return context;
+}
+
+function syncWithCatalog(saved: unknown, catalog: Product[]): CartItem[] {
+  if (!Array.isArray(saved)) return [];
+  const byId = new Map(catalog.map((product) => [product.id, product]));
+
+  return saved.flatMap((item) => {
+    const product = byId.get(item?.product?.id);
+    const quantity = Number(item?.quantity);
+    if (!product || !Number.isInteger(quantity) || quantity < 1) return [];
+
+    return [
+      {
+        product,
+        quantity: Math.min(quantity, 20),
+        engraving: typeof item.engraving === "string" ? item.engraving : "",
+      },
+    ];
+  });
 }

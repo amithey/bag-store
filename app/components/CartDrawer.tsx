@@ -1,9 +1,10 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { startTransition, useActionState, useEffect, useState, type FormEvent } from "react";
 import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 import { useCart } from "../context/CartContext";
+import HoneypotField from "./HoneypotField";
 import { submitOrder, type OrderState } from "../actions/orders";
 import { ALLOWED_CITIES, SMADAR_PHONE_DISPLAY } from "@/lib/orderConstants";
 
@@ -25,8 +26,22 @@ export default function CartDrawer({ trustNote }: { trustNote: string }) {
   const [state, formAction, pending] = useActionState(submitOrder, initialState);
 
   useEffect(() => {
-    if (state.status === "success") setMode("success");
+    if (state.status !== "success") return;
+    setMode("success");
+    // The order is saved server-side; empty the cart now so closing the
+    // drawer without tapping WhatsApp can't lead to a duplicate order.
+    clearCart();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state]);
+
+  // Submit through the action manually instead of <form action>: React resets
+  // a form after an action runs, which would wipe everything the customer
+  // typed whenever the server reports a validation error.
+  const submitCheckout = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    startTransition(() => formAction(formData));
+  };
 
   useEffect(() => {
     const openCheckout = () => {
@@ -167,13 +182,14 @@ export default function CartDrawer({ trustNote }: { trustNote: string }) {
               )}
 
               {mode === "checkout" && (
-                <form id="checkout-form" action={formAction} className="space-y-4 pb-6">
+                <form id="checkout-form" onSubmit={submitCheckout} className="relative space-y-4 pb-6">
+                  <HoneypotField />
                   <input
                     type="hidden"
                     name="cart"
                     value={JSON.stringify(
                       cartItems.map((i) => ({
-                        product: { id: i.product.id, name: i.product.name, priceNum: i.product.priceNum },
+                        product: { id: i.product.id },
                         quantity: i.quantity,
                         engraving: i.engraving,
                       }))
@@ -271,7 +287,6 @@ export default function CartDrawer({ trustNote }: { trustNote: string }) {
                       href={state.whatsappLink}
                       target="_blank"
                       rel="noreferrer"
-                      onClick={() => clearCart()}
                       className="mt-3 w-full rounded-full bg-[#25D366] px-6 py-4 text-[12px] font-bold uppercase tracking-[0.2em] text-white"
                     >
                       מעבר לוואטסאפ
@@ -318,3 +333,4 @@ export default function CartDrawer({ trustNote }: { trustNote: string }) {
     </AnimatePresence>
   );
 }
+

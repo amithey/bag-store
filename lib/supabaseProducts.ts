@@ -1,4 +1,5 @@
-import { createClient } from "@supabase/supabase-js";
+import { cache } from "react";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { products as fallbackProducts, type Product } from "./products";
 
 export type ProductRow = {
@@ -42,11 +43,28 @@ export function getSupabaseAdminClient() {
   });
 }
 
-export async function getProducts(): Promise<Product[]> {
+// Storefront catalog. Deduplicated per request with cache() since the layout,
+// the page and its metadata all read it. The static catalog is used only when
+// Supabase isn't configured (local dev) or is unreachable — never when the
+// admin simply hid every product, so hidden/deleted bags can't resurface.
+export const getProducts = cache(async (): Promise<Product[]> => {
   const supabase = getSupabaseBrowserClient();
-
   if (!supabase) return fallbackProducts;
 
+  return (await fetchActiveProducts(supabase)) ?? fallbackProducts;
+});
+
+// Catalog used to price orders. Unlike getProducts it never falls back to the
+// static list on a database error: returns null so the order is refused
+// instead of being priced against stale data.
+export async function getOrderableProducts(): Promise<Product[] | null> {
+  const supabase = getSupabaseBrowserClient();
+  if (!supabase) return fallbackProducts;
+
+  return fetchActiveProducts(supabase);
+}
+
+async function fetchActiveProducts(supabase: SupabaseClient): Promise<Product[] | null> {
   const { data, error } = await supabase
     .from("products")
     .select(PRODUCT_COLUMNS)
@@ -54,12 +72,12 @@ export async function getProducts(): Promise<Product[]> {
     .order("sort_order", { ascending: true })
     .order("id", { ascending: true });
 
-  if (error || !data?.length) {
-    if (error) console.warn("[supabase] products fallback:", error.message);
-    return fallbackProducts;
+  if (error) {
+    console.warn("[supabase] failed to load products:", error.message);
+    return null;
   }
 
-  return data.map(rowToProduct);
+  return (data || []).map(rowToProduct);
 }
 
 export async function getAdminProducts(): Promise<ProductRow[]> {

@@ -45,11 +45,16 @@ export type SaveOrderInput = {
   notes?: string;
 };
 
-export async function saveOrderRecord(order: SaveOrderInput) {
+// "duplicate" means the order id is already taken — the caller must retry with
+// a new id. A plain insert (never upsert) guarantees an existing order can't be
+// silently overwritten by a new one that happened to draw the same id.
+export async function saveOrderRecord(
+  order: SaveOrderInput
+): Promise<"saved" | "duplicate" | "failed"> {
   const supabase = getSupabaseAdminClient();
-  if (!supabase) return false;
+  if (!supabase) return "failed";
 
-  const { error } = await supabase.from("orders").upsert(
+  const { error } = await supabase.from("orders").insert(
     {
       id: order.orderId,
       customer_name: order.name,
@@ -65,16 +70,16 @@ export async function saveOrderRecord(order: SaveOrderInput) {
       notes: order.notes || null,
       status: "new",
       payment_status: "pending",
-    },
-    { onConflict: "id" }
+    }
   );
 
+  if (error?.code === "23505") return "duplicate";
   if (error) {
     console.error("[supabase] failed to save order:", error);
-    return false;
+    return "failed";
   }
 
-  return true;
+  return "saved";
 }
 
 export async function getRecentOrders(limit = 50): Promise<OrderRecord[]> {
