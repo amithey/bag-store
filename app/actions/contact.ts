@@ -39,16 +39,9 @@ export async function submitContact(
 ): Promise<ContactState> {
   await assertSameOrigin();
 
-  const limit = checkRateLimit(await getClientIpKey("contact"), {
-    maxAttempts: 5,
-    windowSeconds: 10 * 60,
-  });
-
-  if (!limit.allowed) {
-    return {
-      status: "error",
-      message: "נשלחו יותר מדי הודעות בזמן קצר. נסו שוב בעוד כמה דקות.",
-    };
+  // Honeypot: only bots fill this hidden field. Fake success, send nothing.
+  if (String(formData.get("website") ?? "").trim()) {
+    return { status: "success", message: "תודה רבה, ההודעה התקבלה. נחזור אליכם בהקדם." };
   }
 
   const raw = {
@@ -68,6 +61,19 @@ export async function submitContact(
       if (!errors[key]) errors[key] = issue.message;
     }
     return { status: "error", errors, message: "אנא בדקו את השדות המסומנים." };
+  }
+
+  // Count only valid messages, so fixing a typo doesn't burn an attempt.
+  const limit = checkRateLimit(await getClientIpKey("contact"), {
+    maxAttempts: 5,
+    windowSeconds: 10 * 60,
+  });
+
+  if (!limit.allowed) {
+    return {
+      status: "error",
+      message: "נשלחו יותר מדי הודעות בזמן קצר. נסו שוב בעוד כמה דקות.",
+    };
   }
 
   const sent = await sendContactEmail({

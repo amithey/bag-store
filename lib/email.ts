@@ -84,7 +84,7 @@ export async function sendContactEmail(contact: ContactEmailPayload): Promise<bo
         to: contact.email,
         replyTo: SMADAR_EMAIL,
         subject: `קיבלנו את הפנייה שלך - ${BRAND_NAME}`,
-        html: renderContactCustomerHtml(contact),
+        html: renderContactCustomerHtml(),
       });
 
       if (!customerEmail.ok) {
@@ -274,18 +274,17 @@ function renderContactStoreHtml(contact: ContactEmailPayload): string {
   });
 }
 
-function renderContactCustomerHtml(contact: ContactEmailPayload): string {
+// Deliberately echoes none of the submitted text: the recipient address is
+// whatever the visitor typed, so quoting their name/message would let anyone
+// use the store's mailbox to send arbitrary content to arbitrary people.
+function renderContactCustomerHtml(): string {
   return renderShell({
     title: "קיבלנו את הפנייה שלך",
     subtitle: BRAND_NAME,
     body: `
       <p style="margin:0;color:#111;font-size:15px;line-height:1.8">
-        היי ${escapeHtml(contact.name)}, תודה שפנית אלינו. קיבלנו את ההודעה ונחזור אליך בהקדם.
+        היי, תודה שפנית אלינו. קיבלנו את ההודעה ונחזור אליך בהקדם.
       </p>
-      <div style="margin-top:18px;padding:14px 16px;background:#f7f3ec;border-radius:12px">
-        <div style="color:#7a6248;font-size:11px;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px">ההודעה שלך</div>
-        <div style="white-space:pre-wrap;color:#111;font-size:14px;line-height:1.7">${escapeHtml(contact.message)}</div>
-      </div>
     `,
   });
 }

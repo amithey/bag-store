@@ -1,5 +1,6 @@
 "use server";
 
+import { randomInt } from "crypto";
 import { z } from "zod";
 import {
   ALLOWED_CITIES,
@@ -9,7 +10,7 @@ import {
 import { sendOrderEmails } from "@/lib/email";
 import { sendWhatsAppOrderAlert } from "@/lib/whatsapp";
 import { saveOrderRecord } from "@/lib/supabaseOrders";
-import { getProducts } from "@/lib/supabaseProducts";
+import { getOrderableProducts } from "@/lib/supabaseProducts";
 import { isSoldOut } from "@/lib/productStock";
 import { checkRateLimit } from "@/lib/rateLimit";
 import { assertSameOrigin, getClientIpKey } from "@/lib/requestSecurity";
@@ -71,16 +72,10 @@ export async function submitOrder(
 ): Promise<OrderState> {
   await assertSameOrigin();
 
-  const limit = checkRateLimit(await getClientIpKey("order"), {
-    maxAttempts: 4,
-    windowSeconds: 10 * 60,
-  });
-
-  if (!limit.allowed) {
-    return {
-      status: "error",
-      message: "נשלחו יותר מדי הזמנות בזמן קצר. נסו שוב בעוד כמה דקות.",
-    };
+  // Honeypot: a field hidden from people that only bots fill in. Pretend it
+  // worked so the bot doesn't adapt, but send nothing.
+  if (String(formData.get("website") ?? "").trim()) {
+    return { status: "success", message: "ההזמנה התקבלה בהצלחה!" };
   }
 
   const raw = {
@@ -125,9 +120,29 @@ export async function submitOrder(
     };
   }
 
+  // Rate-limit only complete, valid orders — a customer fixing typos in the
+  // form must not lock themselves out.
+  const limit = checkRateLimit(await getClientIpKey("order"), {
+    maxAttempts: 4,
+    windowSeconds: 10 * 60,
+  });
+
+  if (!limit.allowed) {
+    return {
+      status: "error",
+      message: "נשלחו יותר מדי הזמנות בזמן קצר. נסו שוב בעוד כמה דקות.",
+    };
+  }
+
   // Server-side re-pricing: names and prices always come from the catalog,
   // never from the browser — so a tampered cart can't change what is charged.
-  const catalog = await getProducts();
+  const catalog = await getOrderableProducts();
+  if (!catalog) {
+    return {
+      status: "error",
+      message: "לא הצלחנו לאמת את המלאי כרגע. נסו שוב בעוד רגע או פנו אלינו בוואטסאפ.",
+    };
+  }
   const catalogById = new Map(catalog.map((product) => [product.id, product]));
 
   const cartItems = [];
@@ -157,7 +172,6 @@ export async function submitOrder(
     });
   }
 
-  const orderId = `SH-${Math.floor(100000 + Math.random() * 900000)}`;
   const total = cartItems.reduce((sum, item) => sum + item.product.priceNum * item.quantity, 0);
   const cartDescription = cartItems
     .map((item) => {
@@ -169,6 +183,28 @@ export async function submitOrder(
 
   const paymentLabel = paymentMethodsHebrew[parsed.data.paymentMethod];
   const paymentLink = process.env.BIT_PAYMENT_URL || undefined;
+
+  // Save first so the id sent to the customer is guaranteed unique; on the
+  // rare collision, draw a new id and try again.
+  let orderId = createOrderId();
+  let dbResult: Awaited<ReturnType<typeof saveOrderRecord>> = "duplicate";
+  for (let attempt = 0; dbResult === "duplicate" && attempt < 5; attempt++) {
+    if (attempt > 0) orderId = createOrderId();
+    dbResult = await saveOrderRecord({
+      orderId,
+      name: parsed.data.name,
+      email: parsed.data.email,
+      phone: parsed.data.phone,
+      city: parsed.data.city,
+      address: parsed.data.address,
+      paymentMethod: parsed.data.paymentMethod,
+      paymentLabel,
+      total,
+      cartDescription,
+      cartItems,
+      notes: parsed.data.notes || undefined,
+    });
+  }
 
   const orderPayload = {
     orderId,
@@ -187,12 +223,8 @@ export async function submitOrder(
   // Delivery channels are best-effort. The order is considered received once it
   // passed validation — the WhatsApp link below is always available as a manual
   // fallback, so we never tell the customer it "failed" over an email hiccup.
-  const [dbSaved, emailSent, whatsappSent] = await Promise.all([
-    saveOrderRecord({
-      ...orderPayload,
-      paymentMethod: parsed.data.paymentMethod,
-      cartItems,
-    }),
+  const dbSaved = dbResult === "saved";
+  const [emailSent, whatsappSent] = await Promise.all([
     sendOrderEmails(orderPayload),
     sendWhatsAppOrderAlert(orderPayload),
   ]);
@@ -229,4 +261,8 @@ ${parsed.data.notes ? `\nהערות מיוחדות: ${parsed.data.notes}` : ""}
     paymentLink,
     whatsappLink: `https://api.whatsapp.com/send?phone=${SMADAR_WHATSAPP}&text=${encodeURIComponent(whatsappMessage)}`,
   };
+}
+
+function createOrderId() {
+  return `SH-${randomInt(100000, 1000000)}`;
 }

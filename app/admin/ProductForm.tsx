@@ -1,8 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import type { ProductRow } from "@/lib/supabaseProducts";
 import { getStockState, stockStateLabels } from "@/lib/productStock";
 import AdminImageManager from "./AdminImageManager";
+import AdminImageUploader from "./AdminImageUploader";
 import { deleteProduct, hideProduct, saveProduct } from "./actions";
 
 const inputClass =
@@ -12,6 +14,7 @@ export default function ProductForm({ product }: { product?: ProductRow }) {
   const isEdit = Boolean(product);
   const imageList = product?.images?.length ? product.images : product?.image ? [product.image] : [];
   const stockState = getStockState(product?.stock_status || "");
+  const [uploading, setUploading] = useState(false);
 
   return (
     <div className="rounded-3xl border border-line bg-white/80 p-5 shadow-sm">
@@ -27,7 +30,7 @@ export default function ProductForm({ product }: { product?: ProductRow }) {
 
         <div>
           <label className="eyebrow mb-2 block">מחיר</label>
-          <input name="priceNum" type="number" min="1" defaultValue={product?.price_num} required={isEdit} className={inputClass} />
+          <input name="priceNum" type="number" min="1" step="1" defaultValue={product?.price_num} required={isEdit} className={inputClass} />
         </div>
 
         <div>
@@ -76,7 +79,7 @@ export default function ProductForm({ product }: { product?: ProductRow }) {
 
         <div className="md:col-span-2">
           <label className="eyebrow mb-2 block">תמונות</label>
-          <input name="imageFiles" type="file" accept="image/*" multiple className={inputClass} />
+          <AdminImageUploader onUploadingChange={setUploading} />
           <input
             name="imageUrl"
             type="text"
@@ -109,8 +112,8 @@ export default function ProductForm({ product }: { product?: ProductRow }) {
         )}
 
         <div className="flex gap-3 md:justify-end">
-          <button type="submit" className="button-dark rounded-full px-6 py-3">
-            {isEdit ? "שמירת שינויים" : "הוספת תיק"}
+          <button type="submit" disabled={uploading} className="button-dark rounded-full px-6 py-3 disabled:opacity-50">
+            {uploading ? "ממתין להעלאת התמונות..." : isEdit ? "שמירת שינויים" : "הוספת תיק"}
           </button>
         </div>
       </form>

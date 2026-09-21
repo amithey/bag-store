@@ -1,5 +1,6 @@
 "use server";
 
+import { randomUUID } from "crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import {
@@ -81,17 +82,17 @@ export async function saveProduct(formData: FormData) {
   const retainedImages = existingImages.filter((image) => !removedImages.has(image));
   const imageUrl = String(formData.get("imageUrl") || "").trim();
   const imageUrls = parseImageList(String(formData.get("imageUrls") || ""));
-  const imageFiles = formData
-    .getAll("imageFiles")
-    .filter((file): file is File => file instanceof File && file.size > 0);
-  const uploadedImages = await Promise.all(imageFiles.map(uploadProductImage));
+  // Files are uploaded by the browser straight to Storage (see
+  // createProductImageUpload) — only their public URLs arrive here.
+  const uploadedImages = parseImageList(String(formData.get("uploadedImages") || ""));
   const images = uniqueImages([
     ...retainedImages,
-    ...uploadedImages.filter((image): image is string => Boolean(image)),
+    ...uploadedImages,
     ...imageUrls,
     imageUrl,
   ]);
-  const priceNum = Number(formData.get("priceNum") || 0);
+  // price_num is an integer column; round so e.g. "149.9" doesn't fail the save.
+  const priceNum = Math.round(Number(formData.get("priceNum") || 0));
   const safePriceNum = Number.isFinite(priceNum) && priceNum > 0 ? priceNum : 1;
   const sortOrder = Number(formData.get("sortOrder") || 999);
   const wantsActive = formData.get("isActive") === "on";
@@ -249,46 +250,58 @@ export async function updateOrderStatus(formData: FormData) {
   revalidatePath("/admin");
 }
 
+const IMAGE_EXTENSIONS: Record<string, string> = {
+  "image/jpeg": "jpg",
+  "image/png": "png",
+  "image/webp": "webp",
+  "image/gif": "gif",
+};
+const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
+
+export type ImageUploadTicket =
+  | { ok: true; path: string; token: string; publicUrl: string }
+  | { ok: false; error: string };
+
+// Product photos are uploaded by the browser directly to Supabase Storage with
+// a one-time signed URL. Sending them through a Server Action instead would hit
+// the 1MB action body limit (and Vercel's 4.5MB request cap), so any real phone
+// photo would fail. The server still decides the path, type and size.
+export async function createProductImageUpload(
+  contentType: string,
+  size: number
+): Promise<ImageUploadTicket> {
+  await assertSameOrigin();
+  await requireAdmin();
+
+  const ext = IMAGE_EXTENSIONS[contentType];
+  if (!ext) return { ok: false, error: "סוג קובץ לא נתמך. אפשר JPG, PNG, WEBP או GIF." };
+  if (!Number.isFinite(size) || size <= 0 || size > MAX_IMAGE_BYTES) {
+    return { ok: false, error: "התמונה גדולה מדי (עד 8MB)." };
+  }
+
+  const supabase = getSupabaseAdminClient();
+  if (!supabase) return { ok: false, error: "חסר מפתח ניהול של Supabase." };
+
+  const path = `products/${Date.now()}-${randomUUID()}.${ext}`;
+  const bucket = supabase.storage.from("product-images");
+  const { data, error } = await bucket.createSignedUploadUrl(path);
+  if (error || !data) {
+    console.error("[admin] failed to create image upload url:", error);
+    return { ok: false, error: "לא הצלחנו להכין את ההעלאה. נסי שוב." };
+  }
+
+  return {
+    ok: true,
+    path: data.path,
+    token: data.token,
+    publicUrl: bucket.getPublicUrl(data.path).data.publicUrl,
+  };
+}
+
 async function requireAdmin() {
   if (!(await isAdminAuthenticated())) {
     redirect("/admin");
   }
-}
-
-async function uploadProductImage(file: File) {
-  if (!file.size) return null;
-  if (file.size > 8 * 1024 * 1024) {
-    throw new Error("Image file is too large.");
-  }
-
-  if (!["image/jpeg", "image/png", "image/webp", "image/gif"].includes(file.type)) {
-    throw new Error("Unsupported image type.");
-  }
-
-  const supabase = getSupabaseAdminClient();
-  if (!supabase) throw new Error("Supabase service role key is missing.");
-
-  const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
-  const safeName = file.name
-    .replace(/\.[^.]+$/, "")
-    .replace(/[^a-z0-9_-]+/gi, "-")
-    .replace(/^-+|-+$/g, "")
-    .toLowerCase();
-  const path = `products/${Date.now()}-${safeName || "bag"}.${ext}`;
-
-  const { error } = await supabase.storage.from("product-images").upload(path, file, {
-    cacheControl: "31536000",
-    contentType: file.type || "image/jpeg",
-    upsert: false,
-  });
-
-  if (error) {
-    console.error("[admin] failed to upload product image:", error);
-    throw new Error("Failed to upload image.");
-  }
-
-  const { data } = supabase.storage.from("product-images").getPublicUrl(path);
-  return data.publicUrl;
 }
 
 function getNextProductId(products: ProductRow[]) {

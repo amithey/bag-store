@@ -6,6 +6,7 @@ import ScrollProgress from "./components/ScrollProgress";
 import CartDrawer from "./components/CartDrawer";
 import ProductModal from "./components/ProductModal";
 import { getSiteContent } from "@/lib/siteContent";
+import { getProducts } from "@/lib/supabaseProducts";
 import { siteUrl } from "@/lib/site";
 
 const siteTitle = "smadar heymans | תיקי סריגה בעבודת יד";
@@ -52,7 +53,7 @@ export default async function RootLayout({
 }) {
   // Cart drawer + product modal are mounted once here (not per-page) so they
   // work identically on the homepage and on /product/[id] pages.
-  const siteContent = await getSiteContent();
+  const [siteContent, catalog] = await Promise.all([getSiteContent(), getProducts()]);
 
   return (
     <html lang="he" dir="rtl">
@@ -67,7 +68,7 @@ export default async function RootLayout({
           }}
         />
         <SmoothScroll>
-          <CartProvider>
+          <CartProvider catalog={catalog}>
             <ScrollProgress />
             <CartDrawer trustNote={siteContent.trustNote} />
             <ProductModal />

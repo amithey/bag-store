@@ -125,12 +125,10 @@ set
   file_size_limit = excluded.file_size_limit,
   allowed_mime_types = excluded.allowed_mime_types;
 
+-- The bucket is public, so images are served by URL without any policy. A
+-- select policy for anon would only add the ability to *list* the bucket,
+-- exposing photos of draft/hidden products — so there is deliberately none.
 drop policy if exists "Public can read product images" on storage.objects;
-create policy "Public can read product images"
-on storage.objects
-for select
-to anon
-using (bucket_id = 'product-images');
 
 insert into public.products
   (id, name, material, dimensions, price_num, image, images, image_fit, alt, stock_status, description, category, is_active, sort_order)

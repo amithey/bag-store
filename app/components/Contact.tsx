@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { startTransition, useActionState, type FormEvent } from "react";
 import { submitContact, type ContactState } from "../actions/contact";
 import {
   SMADAR_EMAIL,
@@ -8,6 +8,7 @@ import {
   SMADAR_WHATSAPP,
 } from "@/lib/orderConstants";
 import FadeIn from "./FadeIn";
+import HoneypotField from "./HoneypotField";
 
 const initialState: ContactState = { status: "idle" };
 const inputBase =
@@ -20,6 +21,14 @@ function FieldError({ msg }: { msg?: string }) {
 
 export default function Contact() {
   const [state, formAction, pending] = useActionState(submitContact, initialState);
+
+  // Manual submit so React doesn't reset the form (and wipe the message) when
+  // the server returns a validation error.
+  const submitMessage = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    startTransition(() => formAction(formData));
+  };
 
   return (
     <section id="contact" className="pb-24 md:pb-32">
@@ -65,7 +74,8 @@ export default function Contact() {
                   </p>
                 </div>
               ) : (
-                <form action={formAction} className="space-y-5">
+                <form onSubmit={submitMessage} className="relative space-y-5">
+                  <HoneypotField />
                   <div className="grid gap-5 md:grid-cols-2">
                     <div>
                       <label htmlFor="contact-name" className="eyebrow mb-2 block">שם מלא</label>

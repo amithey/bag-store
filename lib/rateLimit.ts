@@ -4,6 +4,9 @@ type RateLimitEntry = {
 };
 
 const store = new Map<string, RateLimitEntry>();
+// Beyond this many tracked keys, expired entries are swept so a flood of
+// distinct IPs can't grow the map without bound.
+const MAX_KEYS = 5000;
 
 export type RateLimitResult = {
   allowed: boolean;
@@ -15,6 +18,7 @@ export function checkRateLimit(
   options: { maxAttempts: number; windowSeconds: number }
 ): RateLimitResult {
   const now = Date.now();
+  if (store.size > MAX_KEYS) pruneExpired(now);
   const current = store.get(key);
 
   if (!current || current.resetAt <= now) {
@@ -38,4 +42,10 @@ export function checkRateLimit(
 
 export function clearRateLimit(key: string) {
   store.delete(key);
+}
+
+function pruneExpired(now: number) {
+  for (const [key, entry] of store) {
+    if (entry.resetAt <= now) store.delete(key);
+  }
 }
