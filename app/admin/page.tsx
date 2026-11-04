@@ -84,11 +84,27 @@ export default async function AdminPage() {
 }
 
 async function AdminContent() {
-  const [products, orders, siteContent] = await Promise.all([
-    getAdminProducts(),
-    getRecentOrders(),
-    getAdminSiteContent(),
-  ]);
+  let loaded;
+  try {
+    loaded = await Promise.all([getAdminProducts(), getRecentOrders(), getAdminSiteContent()]);
+  } catch (error) {
+    // Never render the panel as if the database were simply empty: that is how
+    // an outage looks exactly like "all my bags disappeared", and saving a new
+    // bag against an empty list would reuse an id that is already taken.
+    console.error("[admin] failed to load admin data:", error);
+    return (
+      <SetupBox
+        title="אין חיבור למסד הנתונים"
+        body="התיקים וההזמנות לא נטענו, ולכן אין להוסיף או לערוך תיקים כרגע — שמירה עכשיו עלולה לדרוס תיק קיים. התיקים עצמם לא נמחקו; רק החיבור ל-Supabase לא עובד."
+        steps={[
+          "ב-Supabase Dashboard: אם הפרויקט מופיע כ-Paused — לחצי Restore. פרויקט בחינם עובר להשהיה אחרי כשבוע בלי שימוש, והנתונים חוזרים אחרי השחזור.",
+          "אם הפרויקט פעיל: Project Settings → API, והשוואת ה-Project URL למשתנה NEXT_PUBLIC_SUPABASE_URL ב-Vercel. אם ה-URL השתנה, יש לעדכן אותו ואת שני המפתחות ואז Redeploy.",
+        ]}
+      />
+    );
+  }
+
+  const [products, orders, siteContent] = loaded;
   const activeOrders = orders.filter(isActiveOrder);
   const pastOrders = orders.length - activeOrders.length;
   const monthOrders = orders.filter(isCurrentMonthOrder);

@@ -41,9 +41,17 @@ export default function SmoothScroll({ children }: { children: React.ReactNode }
       raf = requestAnimationFrame(loop);
 
       const hash = window.location.hash;
-      if (hash) {
-        const target = document.querySelector(hash);
-        if (target instanceof HTMLElement) lenis.scrollTo(target, { immediate: true });
+      const target = hash ? safeQuery(hash) : null;
+
+      if (target) {
+        lenis.scrollTo(target, { immediate: true });
+      } else if (!isHistoryTraversal()) {
+        // Second line of defence behind the inline script in the layout: a
+        // browser can re-apply its remembered offset late, once lazy images
+        // have settled the page height — which is after "load". A fresh visit
+        // or a reload always starts at the top; only back/forward keeps the
+        // position the visitor left off at.
+        lenis.scrollTo(0, { immediate: true });
       }
     };
 
@@ -61,4 +69,23 @@ export default function SmoothScroll({ children }: { children: React.ReactNode }
   }, []);
 
   return <>{children}</>;
+}
+
+// A hash can be anything a visitor types ("#", "#1", "#a b"), and querySelector
+// throws on an invalid selector — which would abort the whole setup and leave
+// the page with no smooth scrolling at all.
+function safeQuery(hash: string): HTMLElement | null {
+  try {
+    const target = document.querySelector(hash);
+    return target instanceof HTMLElement ? target : null;
+  } catch {
+    return null;
+  }
+}
+
+function isHistoryTraversal() {
+  const entry = performance.getEntriesByType("navigation")[0] as
+    | PerformanceNavigationTiming
+    | undefined;
+  return entry?.type === "back_forward";
 }

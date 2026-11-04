@@ -8,14 +8,17 @@ import Process from "./components/Process";
 import Contact from "./components/Contact";
 import Footer from "./components/Footer";
 import ProductCarousel from "./components/ProductCarousel";
-import { getProducts } from "@/lib/supabaseProducts";
+import { getCatalog } from "@/lib/supabaseProducts";
 import { getSiteContent } from "@/lib/siteContent";
 import { absoluteUrl, siteUrl } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const [products, siteContent] = await Promise.all([getProducts(), getSiteContent()]);
+  const [{ products, unavailable }, siteContent] = await Promise.all([
+    getCatalog(),
+    getSiteContent(),
+  ]);
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -55,7 +58,7 @@ export default async function HomePage() {
         <Intro />
         <Hero productCount={products.length} featured={products[0]} content={siteContent} />
         <ProductCarousel products={products} />
-        <Collection products={products} content={siteContent} />
+        <Collection products={products} content={siteContent} unavailable={unavailable} />
         <Anatomy />
         <Numbers />
         <Process content={siteContent} />

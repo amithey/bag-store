@@ -46,6 +46,9 @@ export const metadata: Metadata = {
   },
 };
 
+// Kept on one line: it is inlined into the HTML before anything else runs.
+const SCROLL_RESTORATION_RESET = `(function(){try{if(!("scrollRestoration" in history))return;var n=performance.getEntriesByType("navigation")[0];if(n&&n.type==="back_forward")return;history.scrollRestoration="manual";if(!location.hash)window.scrollTo(0,0);}catch(e){}})();`;
+
 export default async function RootLayout({
   children,
 }: {
@@ -58,6 +61,20 @@ export default async function RootLayout({
   return (
     <html lang="he" dir="rtl">
       <body className="relative bg-cream text-ink font-sans antialiased">
+        {/*
+          Runs before the browser restores a scroll offset for this history
+          entry. Without it a returning visitor (reload, reopened tab, session
+          restore) lands wherever they left off — usually far down this long
+          one-page site — and that position is then what Lenis locks onto, so
+          the site looks like it "opens at the bottom". Real back/forward
+          navigation keeps the browser's own restore, which is what people
+          expect there.
+        */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: SCROLL_RESTORATION_RESET,
+          }}
+        />
         <div
           aria-hidden
           className="pointer-events-none fixed inset-0 z-[1] opacity-[0.08]"
