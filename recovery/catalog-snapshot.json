@@ -1,0 +1,308 @@
+[
+  {
+    "id": "05",
+    "name": "תיק דגם אורית",
+    "material": "חוט בצבע כחול navy",
+    "dimensions": "23x20 ס״מ",
+    "price": "₪250",
+    "priceNum": 250,
+    "image": "/images/bag_blue.jpg",
+    "images": [
+      "/images/bag_blue.jpg"
+    ],
+    "imageFit": "cover",
+    "alt": "תמונה של תיק דגם אורית",
+    "stockStatus": "מוכן למסירה באשדוד והסביבה",
+    "description": "תיק יד כחול רויאל, חוט קשיח ,רצועת שרשרת מוזהבת.",
+    "category": "hand"
+  },
+  {
+    "id": "23",
+    "name": "תיק דגם אופיר כחול navy",
+    "material": "חוט קשיח",
+    "dimensions": "23X20 ס\"מ",
+    "price": "₪350",
+    "priceNum": 350,
+    "image": "https://lmxrtgvfqjuxjhpejipn.supabase.co/storage/v1/object/public/product-images/products/1783674499484-navy.jpg",
+    "images": [
+      "https://lmxrtgvfqjuxjhpejipn.supabase.co/storage/v1/object/public/product-images/products/1783674499484-navy.jpg"
+    ],
+    "imageFit": "cover",
+    "alt": "תמונה של תיק דגם אופיר כחול navy",
+    "stockStatus": "פרטים יתעדכנו בקרוב",
+    "description": "תיק יד בגוון כחול navy ,חוט קשיח עם ידיות סרוגות ורצועת שרשרת נשלפת",
+    "category": "shoulder"
+  },
+  {
+    "id": "25",
+    "name": "תיק דגם אורית",
+    "material": "חוט קשיח בצבע שמנת",
+    "dimensions": "26X16 ס\"מ",
+    "price": "₪450",
+    "priceNum": 450,
+    "image": "https://lmxrtgvfqjuxjhpejipn.supabase.co/storage/v1/object/public/product-images/products/1784104546270-bag.jpeg",
+    "images": [
+      "https://lmxrtgvfqjuxjhpejipn.supabase.co/storage/v1/object/public/product-images/products/1784104546270-bag.jpeg"
+    ],
+    "imageFit": "cover",
+    "alt": "תמונה של תיק דגם אורית",
+    "stockStatus": "מוכן למסירה באשדוד והסביבה",
+    "description": "תיק צורת \"קופסה\" מעודנת סרוג בחוט בצבע שמנת , קשיח. בצדדים מצורפים למבנה התיק חתיכות דמוי עור בצבע בורדו המעניקים את הצורה הייחודית של התיק. בנוסף לתיק יש ביטנה וריץ רץ לסגירה .",
+    "category": "shoulder"
+  },
+  {
+    "id": "04",
+    "name": "תיק דגם אופיר צבע מנטה",
+    "material": "חוט כותנה רך בגוון ירוק מנטה",
+    "dimensions": "24x16 ס״מ",
+    "price": "₪350",
+    "priceNum": 350,
+    "image": "/images/bag_green.jpg",
+    "images": [
+      "/images/bag_green.jpg"
+    ],
+    "imageFit": "cover",
+    "alt": "תמונה של תיק דגם אופיר צבע מנטה",
+    "stockStatus": "ייצור בהזמנה אישית, כ-7 ימי עבודה",
+    "description": "תיק יד בגוון מנטה ,חוט קשיח עם ידיות סרוגות ורצועת שרשרת נשלפת ללא ביטנה",
+    "category": "hand"
+  },
+  {
+    "id": "24",
+    "name": "דגם יאנה אפור חום",
+    "material": "חוט קשיח",
+    "dimensions": "27 אורך 15 גובה",
+    "price": "₪400",
+    "priceNum": 400,
+    "image": "https://lmxrtgvfqjuxjhpejipn.supabase.co/storage/v1/object/public/product-images/products/1783942295932-bag.jpg",
+    "images": [
+      "https://lmxrtgvfqjuxjhpejipn.supabase.co/storage/v1/object/public/product-images/products/1783942295932-bag.jpg"
+    ],
+    "imageFit": "cover",
+    "alt": "תמונה של דגם יאנה אפור חום",
+    "stockStatus": "פרטים יתעדכנו בקרוב",
+    "description": "תיק סרוג בחוט בצבע חום אפרפר. כולל ביטנה בצבע שמנת .",
+    "category": "shoulder"
+  },
+  {
+    "id": "07",
+    "name": "תיק דגם כספית",
+    "material": "חוט מקרמה אפור כסוף עם ברק עדין",
+    "dimensions": "22x18 ס״מ",
+    "price": "₪300",
+    "priceNum": 300,
+    "image": "/images/bag_silver.jpg",
+    "images": [
+      "/images/bag_silver.jpg"
+    ],
+    "imageFit": "cover",
+    "alt": "תמונה של תיק דגם כספית",
+    "stockStatus": "ייצור בהזמנה אישית, כ-7 ימי עבודה",
+    "description": "דגם כסוף חוט קשיח ,ללא ביטנה , עם ידית סרוגה ורצועת שרשרת.",
+    "category": "hand"
+  },
+  {
+    "id": "01",
+    "name": "תיק חום דגם סמדר",
+    "material": "חוט טריקו בגוון חום קפה",
+    "dimensions": "23x15 ס״מ",
+    "price": "₪150",
+    "priceNum": 150,
+    "image": "/images/bag_brown.jpg",
+    "images": [
+      "/images/bag_brown.jpg"
+    ],
+    "imageFit": "cover",
+    "alt": "תיק סרוג חום עם תליון מוזהב",
+    "stockStatus": "מוכן למסירה באשדוד והסביבה",
+    "description": "תיק צד קטן ונוח בגוון חום עמוק, עם סריגה צפופה ופרזול מוזהב. מתאים ליומיום, לאירוע קטן או כמתנה אישית.",
+    "category": "shoulder"
+  },
+  {
+    "id": "13",
+    "name": "דגם לילך",
+    "material": "חוט טריקו  רך ונעים",
+    "dimensions": "רוחב 15 ס\"מ אורך 23 ס\"מ",
+    "price": "₪100",
+    "priceNum": 100,
+    "image": "https://lmxrtgvfqjuxjhpejipn.supabase.co/storage/v1/object/public/product-images/products/1782197030774-bag.jpg",
+    "images": [
+      "https://lmxrtgvfqjuxjhpejipn.supabase.co/storage/v1/object/public/product-images/products/1782197030774-bag.jpg"
+    ],
+    "imageFit": "cover",
+    "alt": "תמונה של דגם לילך",
+    "stockStatus": "מוכן למסירה באשדוד והסביבה",
+    "description": "חוט טריקו  רך ונעים ללא היטנה",
+    "category": "shoulder"
+  },
+  {
+    "id": "22",
+    "name": "דגם מיקה שמנת",
+    "material": "חוט",
+    "dimensions": "19 ס\"מ 16Xס\"מ",
+    "price": "₪400",
+    "priceNum": 400,
+    "image": "https://lmxrtgvfqjuxjhpejipn.supabase.co/storage/v1/object/public/product-images/products/1783673388852-bag.jpeg",
+    "images": [
+      "https://lmxrtgvfqjuxjhpejipn.supabase.co/storage/v1/object/public/product-images/products/1783673388852-bag.jpeg"
+    ],
+    "imageFit": "cover",
+    "alt": "תמונה של דגם מיקה שמנת",
+    "stockStatus": "מוכן למסירה באשדוד והסביבה",
+    "description": "תיק סרוג על רשת כולל ביטנה יוקרתית עם שרשרת ואבזם גוון זהב",
+    "category": "shoulder"
+  },
+  {
+    "id": "06",
+    "name": "תיק לילך",
+    "material": "חוט טריקו גמיש בגוון לילך",
+    "dimensions": "22x14 ס״מ",
+    "price": "₪100",
+    "priceNum": 100,
+    "image": "/images/bag_purple.jpg",
+    "images": [
+      "/images/bag_purple.jpg"
+    ],
+    "imageFit": "cover",
+    "alt": "תמונה של תיק לילך",
+    "stockStatus": "מוכן למסירה באשדוד והסביבה",
+    "description": "תיק כתף רך בגוון לילך, עם אבזם מוזהב ורצועה רחבה. עדין, נוח.",
+    "category": "shoulder"
+  },
+  {
+    "id": "02",
+    "name": "תיק דגם עומר",
+    "material": "חוטי כותנה שזורים בגווני שמנת, מוקה וחום",
+    "dimensions": "19x12 ס״מ",
+    "price": "₪150",
+    "priceNum": 150,
+    "image": "/images/bag_pattern.jpg",
+    "images": [
+      "/images/bag_pattern.jpg"
+    ],
+    "imageFit": "cover",
+    "alt": "תמונה של תיק דגם עומר",
+    "stockStatus": "ייצור בהזמנה אישית, כ-7 ימי עבודה",
+    "description": "תיק קטן סרוג בגווני חום ושמנת . סרוג על רשת . כולל ביטנה",
+    "category": "shoulder"
+  },
+  {
+    "id": "03",
+    "name": "תיק אפור",
+    "material": "חוט",
+    "dimensions": "22x15 ס״מ",
+    "price": "₪300",
+    "priceNum": 300,
+    "image": "/images/bag_grey.jpg",
+    "images": [
+      "/images/bag_grey.jpg"
+    ],
+    "imageFit": "cover",
+    "alt": "תמונה של תיק אפור",
+    "stockStatus": "פריט אחרון מוכן למסירה",
+    "description": "תיק סרוג בחוט טריקו גמיש  , ללא ביטנה כולל חגורה סרוגה",
+    "category": "shoulder"
+  },
+  {
+    "id": "09",
+    "name": "שמנת חוט עבה",
+    "material": "חוט  עבה",
+    "dimensions": "12x10",
+    "price": "₪250",
+    "priceNum": 250,
+    "image": "https://lmxrtgvfqjuxjhpejipn.supabase.co/storage/v1/object/public/product-images/products/1781711712974-0c5f8e67-c587-4e9c-a674-8cb3c12d26c7.jpg",
+    "images": [
+      "https://lmxrtgvfqjuxjhpejipn.supabase.co/storage/v1/object/public/product-images/products/1781711712974-0c5f8e67-c587-4e9c-a674-8cb3c12d26c7.jpg"
+    ],
+    "imageFit": "cover",
+    "alt": "תמונה של שמנת חוט עבה",
+    "stockStatus": "מוכן למסירה באשדוד והסביבה",
+    "description": "תיק יומי בצבע שמנת ,חוט עבה מאוד וקשיח  ללא ביטנה",
+    "category": "shoulder"
+  },
+  {
+    "id": "10",
+    "name": "תיק דגם מיקה",
+    "material": "חוט עבה",
+    "dimensions": "אורך:19 ס\"מ רוחב :16 ס\"מ",
+    "price": "₪300",
+    "priceNum": 300,
+    "image": "https://lmxrtgvfqjuxjhpejipn.supabase.co/storage/v1/object/public/product-images/products/1781713746074-538b267b-46c0-4d25-95ac-1522e8aa7d20.jpg",
+    "images": [
+      "https://lmxrtgvfqjuxjhpejipn.supabase.co/storage/v1/object/public/product-images/products/1781713746074-538b267b-46c0-4d25-95ac-1522e8aa7d20.jpg"
+    ],
+    "imageFit": "cover",
+    "alt": "תמונה של תיק דגם מיקה",
+    "stockStatus": "מוכן למסירה באשדוד והסביבה",
+    "description": "תיק סרוג על רשת כולל ביתנה",
+    "category": "shoulder"
+  },
+  {
+    "id": "11",
+    "name": "דגם ורדה",
+    "material": "חוט עבה",
+    "dimensions": "אורך: 23 ס\"מ רוחב 16 ס\"מ",
+    "price": "₪250",
+    "priceNum": 250,
+    "image": "https://lmxrtgvfqjuxjhpejipn.supabase.co/storage/v1/object/public/product-images/products/1782196782333-bag.jpg",
+    "images": [
+      "https://lmxrtgvfqjuxjhpejipn.supabase.co/storage/v1/object/public/product-images/products/1782196782333-bag.jpg"
+    ],
+    "imageFit": "cover",
+    "alt": "תמונה של דגם ורדה",
+    "stockStatus": "מוכן למסירה באשדוד והסביבה",
+    "description": "תיק יום , חוט טריקו עבה ומוצק, ללא ביטנה",
+    "category": "shoulder"
+  },
+  {
+    "id": "15",
+    "name": "דגם נינה",
+    "material": "חוט כותנה אלסטי עבה",
+    "dimensions": "אורך 30 ס\"מ רוחב 40 ס\"מ",
+    "price": "₪400",
+    "priceNum": 400,
+    "image": "https://lmxrtgvfqjuxjhpejipn.supabase.co/storage/v1/object/public/product-images/products/1782197642106-bag.jpg",
+    "images": [
+      "https://lmxrtgvfqjuxjhpejipn.supabase.co/storage/v1/object/public/product-images/products/1782197642106-bag.jpg"
+    ],
+    "imageFit": "cover",
+    "alt": "תמונה של דגם נינה",
+    "stockStatus": "מוכן למסירה באשדוד והסביבה",
+    "description": "חוט טריקו  אלסטי עבה , ללא ביטנה. ידית סרוגה גדול ונוח",
+    "category": "shoulder"
+  },
+  {
+    "id": "26",
+    "name": "תיק דגם מאדים",
+    "material": "חוט טריקו גמיש ונעים למגע",
+    "dimensions": "22X19 ס\"מ",
+    "price": "₪250",
+    "priceNum": 250,
+    "image": "https://lmxrtgvfqjuxjhpejipn.supabase.co/storage/v1/object/public/product-images/products/1784105187285-bag.jpg",
+    "images": [
+      "https://lmxrtgvfqjuxjhpejipn.supabase.co/storage/v1/object/public/product-images/products/1784105187285-bag.jpg"
+    ],
+    "imageFit": "cover",
+    "alt": "תמונה של תיק דגם מאדים",
+    "stockStatus": "מוכן למסירה באשדוד והסביבה",
+    "description": "תיק יד , סרוג בחוט טריקו בצבע בורדו . בתחתית בסיס קשיח .קיימת ביטנה . סגירה באמצעות קלאץ'  נוח מאוד ויכול להכיל הרבה",
+    "category": "hand"
+  },
+  {
+    "id": "27",
+    "name": "תיק דגם סמדר",
+    "material": "חוט קשיח , אבזם גדול",
+    "dimensions": "33 ס\"מ אורך   32 ס\"מ רוחב כולל האבזם",
+    "price": "₪400",
+    "priceNum": 400,
+    "image": "https://lmxrtgvfqjuxjhpejipn.supabase.co/storage/v1/object/public/product-images/products/1788623068671-bag.jpeg",
+    "images": [
+      "https://lmxrtgvfqjuxjhpejipn.supabase.co/storage/v1/object/public/product-images/products/1788623068671-bag.jpeg"
+    ],
+    "imageFit": "cover",
+    "alt": "תמונה של תיק דגם סמדר",
+    "stockStatus": "פרטים יתעדכנו בקרוב",
+    "description": "תיק סרוג  בשני גוונים של חום: בז, נס קפה. בתיק כולל ביטנה יוקרתית ותוספת ידית יוקתית.",
+    "category": "hand"
+  }
+]

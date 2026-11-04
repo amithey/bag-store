@@ -245,21 +245,11 @@ values
     true,
     70
   )
-on conflict (id) do update
-set
-  name = excluded.name,
-  material = excluded.material,
-  dimensions = excluded.dimensions,
-  price_num = excluded.price_num,
-  image = excluded.image,
-  images = excluded.images,
-  image_fit = excluded.image_fit,
-  alt = excluded.alt,
-  stock_status = excluded.stock_status,
-  description = excluded.description,
-  category = excluded.category,
-  is_active = excluded.is_active,
-  sort_order = excluded.sort_order;
+-- Seed only. "do nothing", never "do update": this file is meant to be safe to
+-- re-run, and these demo bags occupy ids 01-07 — the same ids the real catalog
+-- uses. Updating on conflict would overwrite the owner's real bags (names,
+-- prices, photos) with demo data and un-hide ones she had hidden.
+on conflict (id) do nothing;
 
 insert into public.site_content (key, value)
 values
