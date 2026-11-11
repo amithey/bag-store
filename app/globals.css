@@ -127,17 +127,26 @@
   .rise-in, .rise-in-image { animation: none; }
 }
 
-/* A soft moving highlight on a photo frame while its image is still loading.
-   The image paints over it, so it costs nothing once the photo has arrived. */
-@keyframes shimmer-slide {
-  from { background-position: 200% 0; }
-  to { background-position: -200% 0; }
+/* A soft highlight that sweeps across a photo frame while its image is still
+   loading. Two rules keep it cheap:
+   - it moves with transform (handled by the GPU), not background-position,
+     which repainted every frame and kept the main thread ~99% busy;
+   - it runs a few sweeps and stops, instead of looping forever behind photos
+     that have long since loaded.
+   It is a ::before, so the photo (a later sibling) paints over it. */
+@keyframes shimmer-sweep {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(100%); }
 }
-.shimmer {
-  background-image: linear-gradient(100deg, transparent 30%, rgba(255, 255, 255, 0.45) 50%, transparent 70%);
-  background-size: 200% 100%;
-  animation: shimmer-slide 1.6s linear infinite;
+.shimmer::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, transparent 30%, rgba(255, 255, 255, 0.45) 50%, transparent 70%);
+  transform: translateX(-100%);
+  animation: shimmer-sweep 1.6s linear 3;
+  pointer-events: none;
 }
 @media (prefers-reduced-motion: reduce) {
-  .shimmer { animation: none; }
+  .shimmer::before { animation: none; }
 }

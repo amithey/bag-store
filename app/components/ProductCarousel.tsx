@@ -24,23 +24,61 @@ export default function ProductCarousel({ products }: { products: Product[] }) {
   const loop = products.length ? [...products, ...products] : [];
 
   // Continuous auto-scroll (pauses on hover / while dragging).
+  //
+  // It only runs while the strip is actually on screen and the tab is visible:
+  // an animation frame loop that keeps running for a strip nobody is looking at
+  // costs main-thread time on every frame for nothing. The loop length is
+  // measured once instead of on every frame (reading scrollWidth each frame
+  // forced the browser to recalculate layout 60 times a second), and visitors
+  // who ask for reduced motion get a still, draggable strip.
   useEffect(() => {
     const el = trackRef.current;
     if (!el || products.length === 0) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
-    let raf = 0;
     const speed = 0.45; // px per frame
+    let raf = 0;
+    let half = 0;
+    let onScreen = false;
+
+    const measure = () => {
+      half = el.scrollWidth / 2;
+    };
+
     const step = () => {
       const c = ctrl.current;
-      if (!c.paused && !c.down) {
+      if (!c.paused && !c.down && half > 0) {
         el.scrollLeft += speed;
-        const half = el.scrollWidth / 2;
-        if (half > 0 && el.scrollLeft >= half) el.scrollLeft -= half;
+        if (el.scrollLeft >= half) el.scrollLeft -= half;
       }
       raf = requestAnimationFrame(step);
     };
-    raf = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(raf);
+
+    const update = () => {
+      const shouldRun = onScreen && !document.hidden;
+      if (shouldRun && !raf) raf = requestAnimationFrame(step);
+      if (!shouldRun && raf) {
+        cancelAnimationFrame(raf);
+        raf = 0;
+      }
+    };
+
+    measure();
+    const resizeObserver = new ResizeObserver(measure);
+    resizeObserver.observe(el);
+    const visibilityObserver = new IntersectionObserver(([entry]) => {
+      onScreen = entry.isIntersecting;
+      update();
+    });
+    visibilityObserver.observe(el);
+    document.addEventListener("visibilitychange", update);
+
+    return () => {
+      cancelAnimationFrame(raf);
+      resizeObserver.disconnect();
+      visibilityObserver.disconnect();
+      document.removeEventListener("visibilitychange", update);
+    };
   }, [products.length]);
 
   const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
