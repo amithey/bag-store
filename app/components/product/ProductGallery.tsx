@@ -11,8 +11,13 @@ export default function ProductGallery({ product }: { product: Product }) {
 
   return (
     <div>
-      <div className="relative aspect-[4/5] overflow-hidden rounded-[24px] bg-bone md:aspect-[3/4]">
-        <GalleryMain product={product} gallery={gallery} sizes="(min-width: 768px) 50vw, 100vw" />
+      <div className="shimmer relative aspect-[4/5] overflow-hidden rounded-[24px] bg-bone md:aspect-[3/4]">
+        <GalleryMain
+          product={product}
+          gallery={gallery}
+          sizes="(min-width: 768px) 50vw, 100vw"
+          preload
+        />
       </div>
       <GalleryThumbs product={product} gallery={gallery} className="mt-3" />
     </div>

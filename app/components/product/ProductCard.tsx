@@ -5,12 +5,20 @@ import { getHebrewName } from "@/lib/catalog/names";
 import type { Product } from "@/lib/catalog/types";
 import { isSoldOut } from "@/lib/productStock";
 import { useCart } from "../../context/CartContext";
+import { GRID_CARD_SIZES } from "@/lib/images/sizes";
 import ProductImage from "./ProductImage";
 
 // A bag in the collection grid. The same component is meant to be reused by
 // the admin preview, so everything it needs comes from `product` and the cart
 // context — no layout assumptions about where it is placed.
-export default function ProductCard({ product: p }: { product: Product }) {
+export default function ProductCard({
+  product: p,
+  eager = false,
+}: {
+  product: Product;
+  // Cards likely to be on screen straight away load their photo immediately.
+  eager?: boolean;
+}) {
   const { setActiveProduct, addToCart } = useCart();
   const soldOut = isSoldOut(p.stockStatus);
 
@@ -33,12 +41,13 @@ export default function ProductCard({ product: p }: { product: Product }) {
         }}
         className="block w-full text-right"
       >
-        <div className="relative aspect-[4/5] overflow-hidden bg-bone">
+        <div className="shimmer relative aspect-[4/5] overflow-hidden bg-bone">
           <ProductImage
             product={p}
             src={p.image}
             alt={p.alt}
-            sizes="(min-width: 1024px) 31vw, (min-width: 768px) 46vw, 100vw"
+            eager={eager}
+            sizes={GRID_CARD_SIZES}
             className="transition duration-[900ms] ease-editorial group-hover:scale-[1.055]"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-ink/55 via-transparent to-transparent opacity-80" />

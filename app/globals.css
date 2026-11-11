@@ -109,3 +109,35 @@
     100% { transform: translateY(300%); opacity: 0; }
   }
 }
+
+/* Entrance animations that run from CSS alone. They used to be driven by
+   framer-motion, which only starts after the page's JavaScript has loaded and
+   kept the hero invisible until then. */
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes rise-in-image {
+  from { transform: translateY(20px) scale(0.97); }
+  to { transform: none; }
+}
+.rise-in { animation: rise-in 0.75s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.rise-in-image { animation: rise-in-image 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.1s both; }
+@media (prefers-reduced-motion: reduce) {
+  .rise-in, .rise-in-image { animation: none; }
+}
+
+/* A soft moving highlight on a photo frame while its image is still loading.
+   The image paints over it, so it costs nothing once the photo has arrived. */
+@keyframes shimmer-slide {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+.shimmer {
+  background-image: linear-gradient(100deg, transparent 30%, rgba(255, 255, 255, 0.45) 50%, transparent 70%);
+  background-size: 200% 100%;
+  animation: shimmer-slide 1.6s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .shimmer { animation: none; }
+}

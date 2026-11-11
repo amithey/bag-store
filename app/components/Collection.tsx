@@ -19,13 +19,9 @@ const filters: { id: Filter; label: string }[] = [
 export default function Collection({
   products,
   content,
-  unavailable = false,
 }: {
   products: Product[];
   content: SiteContent;
-  // The catalog could not be read from the database. Say so, instead of
-  // leaving a silently empty grid that reads as "the store has no bags".
-  unavailable?: boolean;
 }) {
   const [filter, setFilter] = useState<Filter>("all");
 
@@ -49,19 +45,6 @@ export default function Collection({
           </div>
         </div>
 
-        {unavailable && (
-          <div className="mt-10 rounded-[26px] border border-gold/40 bg-white/80 p-6">
-            <p className="text-[15px] font-bold">הקטלוג לא נטען כרגע</p>
-            <p className="mt-2 text-[14px] leading-7 text-muted">
-              יש תקלה זמנית בטעינת התיקים. אפשר לרענן את הדף בעוד כמה רגעים, או ליצור קשר ישירות
-              ונשמח לעזור בבחירה.
-            </p>
-            <a href="#contact" className="button-dark mt-4 inline-block rounded-full px-5 py-3 text-[11px]">
-              יצירת קשר
-            </a>
-          </div>
-        )}
-
         <div className="mt-10 flex flex-wrap gap-3">
           {filters.map((item) => (
             <button
@@ -81,7 +64,7 @@ export default function Collection({
         <div className="mt-12 grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
           {filteredProducts.map((p, i) => (
             <FadeIn key={p.id} delay={(i % 3) * 0.05}>
-              <ProductCard product={p} />
+              <ProductCard product={p} eager={i < 3} />
             </FadeIn>
           ))}
         </div>

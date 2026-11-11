@@ -82,8 +82,10 @@ export async function saveProduct(formData: FormData) {
     throw new Error("Failed to save product.");
   }
 
-  revalidatePath("/");
-  revalidatePath("/admin");
+  // "layout" refreshes every page under the root layout: the home page, every
+  // product page and the sitemap. The root layout also loads the catalog (for
+  // the cart), so refreshing only "/" would leave product pages stale.
+  revalidatePath("/", "layout");
 }
 
 export async function deleteProduct(formData: FormData) {
@@ -127,8 +129,10 @@ export async function deleteProduct(formData: FormData) {
     }
   }
 
-  revalidatePath("/");
-  revalidatePath("/admin");
+  // "layout" refreshes every page under the root layout: the home page, every
+  // product page and the sitemap. The root layout also loads the catalog (for
+  // the cart), so refreshing only "/" would leave product pages stale.
+  revalidatePath("/", "layout");
 }
 
 export async function hideProduct(formData: FormData) {
@@ -145,8 +149,10 @@ export async function hideProduct(formData: FormData) {
     throw new Error("Failed to hide product.");
   }
 
-  revalidatePath("/");
-  revalidatePath("/admin");
+  // "layout" refreshes every page under the root layout: the home page, every
+  // product page and the sitemap. The root layout also loads the catalog (for
+  // the cart), so refreshing only "/" would leave product pages stale.
+  revalidatePath("/", "layout");
 }
 
 function getNextProductId(products: ProductRow[]) {

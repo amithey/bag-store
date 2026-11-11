@@ -1,7 +1,4 @@
-"use client";
-
 import { getEnglishName } from "@/lib/catalog/names";
-import { motion } from "framer-motion";
 import { type Product } from "@/lib/catalog/types";
 import type { SiteContent } from "@/lib/site-content";
 import { serifDisplay } from "../fonts";
@@ -26,12 +23,7 @@ export default function Hero({
       <div className="absolute inset-x-0 top-0 h-[720px] bg-[radial-gradient(circle_at_12%_18%,rgba(184,138,69,0.24),transparent_34%),linear-gradient(135deg,rgba(255,255,255,0.86),rgba(236,227,214,0.64))]" />
 
       <div className="relative z-10 mx-auto grid max-w-editorial items-center gap-10 px-5 pb-20 md:grid-cols-12 md:px-10 md:pb-28">
-        <motion.div
-          initial={{ opacity: 0, y: 18 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.75, ease: [0.22, 1, 0.36, 1] }}
-          className="md:col-span-5"
-        >
+        <div className="rise-in md:col-span-5">
           <div className="flex items-center gap-3">
             <span className="h-px w-10 bg-gold" />
             <p className="eyebrow">סטודיו בוטיק לתיקי סריגה</p>
@@ -70,14 +62,11 @@ export default function Hero({
               </div>
             ))}
           </div>
-        </motion.div>
+        </div>
 
-        <motion.div
-          initial={{ opacity: 0, scale: 0.97, y: 20 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          transition={{ duration: 0.9, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
-          className="md:col-span-7"
-        >
+        {/* No opacity animation on purpose: this holds the page's largest image, and
+            hiding it until JavaScript has loaded would delay the whole page. */}
+        <div className="rise-in-image md:col-span-7">
           <div className="relative">
             <div className="soft-ring relative aspect-[4/5] overflow-hidden rounded-[28px] bg-white md:aspect-[5/4]">
               {/* The hero is always a full-bleed crop, whatever fit the bag itself uses. */}
@@ -85,7 +74,7 @@ export default function Hero({
                 product={{ imageFit: "cover" }}
                 src={heroImage}
                 alt={featured?.alt || "תיק סרוג בדוגמת פסים"}
-                priority
+                preload
                 sizes="(min-width: 768px) 58vw, 100vw"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-ink/28 via-transparent to-white/10" />
@@ -101,7 +90,7 @@ export default function Hero({
               </p>
             </div>
           </div>
-        </motion.div>
+        </div>
       </div>
     </section>
   );

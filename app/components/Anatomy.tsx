@@ -34,7 +34,6 @@ export default function Anatomy() {
                   src={anatomyImage.src}
                   alt={anatomyImage.alt}
                   fill
-                  unoptimized
                   sizes="(min-width: 768px) 58vw, 100vw"
                   className="object-cover"
                 />

@@ -9,17 +9,17 @@ import Process from "./components/Process";
 import Contact from "./components/Contact";
 import Footer from "./components/Footer";
 import ProductCarousel from "./components/ProductCarousel";
-import { getCatalog } from "@/lib/catalog/queries";
+import ImageWarmup from "./components/ImageWarmup";
+import { getCatalogForCache } from "@/lib/catalog/queries";
 import { getSiteContent } from "@/lib/site-content";
 import { absoluteUrl, siteUrl } from "@/lib/site";
 
-export const dynamic = "force-dynamic";
+// Built once and reused for an hour. Saving in the admin refreshes it at once
+// (see revalidatePath in app/admin/_actions), so the hour is only a safety net.
+export const revalidate = 3600;
 
 export default async function HomePage() {
-  const [{ products, unavailable }, siteContent] = await Promise.all([
-    getCatalog(),
-    getSiteContent(),
-  ]);
+  const [products, siteContent] = await Promise.all([getCatalogForCache(), getSiteContent()]);
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -59,13 +59,14 @@ export default async function HomePage() {
         <Intro />
         <Hero productCount={products.length} featured={products[0]} content={siteContent} />
         <ProductCarousel products={products} />
-        <Collection products={products} content={siteContent} unavailable={unavailable} />
+        <Collection products={products} content={siteContent} />
         <Anatomy />
         <Numbers />
         <Process content={siteContent} />
         <Contact />
       </main>
       <Footer />
+      <ImageWarmup sources={products.map((p) => p.image)} />
     </>
   );
 }

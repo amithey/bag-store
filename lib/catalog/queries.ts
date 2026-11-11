@@ -32,6 +32,17 @@ export async function getProducts(): Promise<Product[]> {
   return (await getCatalog()).products;
 }
 
+// For pages that are built once and then cached (see "revalidate" on them).
+// If the database cannot be read it throws instead of returning an empty list.
+// That matters: a page that rendered "no bags" would be cached and served to
+// every visitor until the next refresh. When a rebuild fails Next keeps serving
+// the previous good copy, so a database outage becomes invisible to visitors.
+export async function getCatalogForCache(): Promise<Product[]> {
+  const { products, unavailable } = await getCatalog();
+  if (unavailable) throw new Error("Catalog unavailable: refusing to cache an empty store.");
+  return products;
+}
+
 // Catalog used to price orders. Unlike getProducts it never falls back to the
 // static list on a database error: returns null so the order is refused
 // instead of being priced against stale data.

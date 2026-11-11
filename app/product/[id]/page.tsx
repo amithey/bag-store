@@ -4,19 +4,31 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
-import { getProducts } from "@/lib/catalog/queries";
+import { getCatalogForCache } from "@/lib/catalog/queries";
 import { isSoldOut } from "@/lib/productStock";
 import { absoluteUrl, siteUrl } from "@/lib/site";
 import ProductImage from "../../components/product/ProductImage";
 import ProductGallery from "../../components/product/ProductGallery";
 import ProductPageActions from "./ProductPageActions";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 3600;
 
 type Props = { params: Promise<{ id: string }> };
 
+// Pre-builds a page for every bag that exists right now. A bag added later is
+// built the first time someone opens it (dynamicParams is on by default) and
+// then cached like the rest. If the catalog cannot be read at build time this
+// returns nothing instead of failing, and pages are built on first visit.
+export async function generateStaticParams() {
+  try {
+    return (await getCatalogForCache()).map((product) => ({ id: product.id }));
+  } catch {
+    return [];
+  }
+}
+
 async function findProduct(id: string) {
-  const products = await getProducts();
+  const products = await getCatalogForCache();
   return { product: products.find((p) => p.id === id) || null, products };
 }
 
