@@ -1,11 +1,12 @@
 "use client";
 
+import { getHebrewName } from "@/lib/catalog/names";
 import { useEffect, useRef } from "react";
-import Image from "next/image";
 import Link from "next/link";
-import { type Product } from "@/lib/products";
+import { type Product } from "@/lib/catalog/types";
 import { useCart } from "../context/CartContext";
 import { serifDisplay } from "../fonts";
+import ProductImage from "./product/ProductImage";
 
 export default function ProductCarousel({ products }: { products: Product[] }) {
   const { setActiveProduct } = useCart();
@@ -112,21 +113,18 @@ export default function ProductCarousel({ products }: { products: Product[] }) {
               className="block w-full text-right"
             >
               <div className="relative aspect-[4/5] overflow-hidden rounded-[24px] bg-bone shadow-[0_24px_60px_-40px_rgba(17,17,17,0.55)] ring-1 ring-line/50">
-                <Image
+                <ProductImage
+                  product={p}
                   src={p.image}
                   alt={p.alt}
-                  fill
-                  unoptimized
                   draggable={false}
                   sizes="280px"
-                  className={`transition duration-700 ease-editorial group-hover:scale-[1.05] ${
-                    p.imageFit === "contain" ? "object-contain p-4" : "object-cover"
-                  }`}
+                  className="transition duration-700 ease-editorial group-hover:scale-[1.05]"
                 />
                 {/* Gallery feel: name fades in softly on hover only — no price, no shop chrome */}
                 <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink/45 to-transparent p-4 opacity-0 transition-opacity duration-500 group-hover:opacity-100" dir="rtl">
                   <h3 className={`${serifDisplay.className} text-[18px] font-medium leading-tight text-cream`}>
-                    {p.name.split(" | ")[0]}
+                    {getHebrewName(p.name)}
                   </h3>
                 </div>
               </div>

@@ -1,4 +1,4 @@
-import { getSupabaseAdminClient, getSupabaseBrowserClient } from "./supabaseProducts";
+import { getSupabaseAdminClient, getSupabaseBrowserClient } from "./supabase/clients";
 
 export type SiteContent = {
   heroTitleLine1: string;

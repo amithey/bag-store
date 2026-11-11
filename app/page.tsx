@@ -1,3 +1,4 @@
+import { getHebrewName } from "@/lib/catalog/names";
 import Header from "./components/Header";
 import Intro from "./components/Intro";
 import Hero from "./components/Hero";
@@ -8,8 +9,8 @@ import Process from "./components/Process";
 import Contact from "./components/Contact";
 import Footer from "./components/Footer";
 import ProductCarousel from "./components/ProductCarousel";
-import { getCatalog } from "@/lib/supabaseProducts";
-import { getSiteContent } from "@/lib/siteContent";
+import { getCatalog } from "@/lib/catalog/queries";
+import { getSiteContent } from "@/lib/site-content";
 import { absoluteUrl, siteUrl } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
@@ -36,7 +37,7 @@ export default async function HomePage() {
       url: `${siteUrl}/product/${p.id}`,
       itemOffered: {
         "@type": "Product",
-        name: p.name.split(" | ")[0],
+        name: getHebrewName(p.name),
         description: p.description,
         image: absoluteUrl(p.image),
       },

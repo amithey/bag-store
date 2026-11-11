@@ -1,13 +1,14 @@
+import { getHebrewName, getEnglishName } from "@/lib/catalog/names";
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
-import { getProducts } from "@/lib/supabaseProducts";
+import { getProducts } from "@/lib/catalog/queries";
 import { isSoldOut } from "@/lib/productStock";
 import { absoluteUrl, siteUrl } from "@/lib/site";
-import ProductGallery from "./ProductGallery";
+import ProductImage from "../../components/product/ProductImage";
+import ProductGallery from "../../components/product/ProductGallery";
 import ProductPageActions from "./ProductPageActions";
 
 export const dynamic = "force-dynamic";
@@ -24,7 +25,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { product } = await findProduct(id);
   if (!product) return { title: "הדגם לא נמצא" };
 
-  const name = product.name.split(" | ")[0];
+  const name = getHebrewName(product.name);
   const description = product.description.slice(0, 160);
   const image = absoluteUrl(product.image);
   const url = `/product/${product.id}`;
@@ -58,8 +59,8 @@ export default async function ProductPage({ params }: Props) {
   const { product, products } = await findProduct(id);
   if (!product) notFound();
 
-  const name = product.name.split(" | ")[0];
-  const englishName = product.name.split(" | ")[1];
+  const name = getHebrewName(product.name);
+  const englishName = getEnglishName(product.name);
   const soldOut = isSoldOut(product.stockStatus);
   const related = products.filter((p) => p.id !== product.id).slice(0, 3);
 
@@ -151,20 +152,17 @@ export default async function ProductPage({ params }: Props) {
                     className="group block overflow-hidden rounded-[22px] bg-white/60 ring-1 ring-line/60 transition hover:ring-ink/30"
                   >
                     <div className="relative aspect-[4/5] overflow-hidden bg-bone">
-                      <Image
+                      <ProductImage
+                        product={p}
                         src={p.image}
                         alt={p.alt}
-                        fill
-                        unoptimized
                         sizes="(min-width: 768px) 30vw, 100vw"
-                        className={`transition duration-700 ease-editorial group-hover:scale-105 ${
-                          p.imageFit === "contain" ? "object-contain p-4" : "object-cover"
-                        }`}
+                        className="transition duration-700 ease-editorial group-hover:scale-105"
                       />
                     </div>
                     <div className="p-4">
                       <p className="text-[15px] font-semibold leading-tight">
-                        {p.name.split(" | ")[0]}
+                        {getHebrewName(p.name)}
                       </p>
                       <p className="mt-1 text-[13px] font-bold text-taupe">{p.price}</p>
                     </div>

@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { anatomyImage, anatomyParts } from "@/lib/products";
+import { anatomyImage, anatomyParts } from "@/lib/home-content";
 import FadeIn from "./FadeIn";
 
 export default function Anatomy() {

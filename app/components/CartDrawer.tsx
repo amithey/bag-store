@@ -1,5 +1,6 @@
 "use client";
 
+import { getHebrewName } from "@/lib/catalog/names";
 import { startTransition, useActionState, useEffect, useState, type FormEvent } from "react";
 import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
@@ -27,6 +28,8 @@ export default function CartDrawer({ trustNote }: { trustNote: string }) {
 
   useEffect(() => {
     if (state.status !== "success") return;
+    // Reacting to the result of a server action (external to React state).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMode("success");
     // The order is saved server-side; empty the cart now so closing the
     // drawer without tapping WhatsApp can't lead to a duplicate order.
@@ -144,7 +147,7 @@ export default function CartDrawer({ trustNote }: { trustNote: string }) {
                             <div>
                               <div className="flex items-start justify-between gap-3">
                                 <h3 className="text-[18px] font-semibold leading-tight">
-                                  {item.product.name.split(" | ")[0]}
+                                  {getHebrewName(item.product.name)}
                                 </h3>
                                 <span className="font-bold">{item.product.price}</span>
                               </div>
@@ -153,21 +156,21 @@ export default function CartDrawer({ trustNote }: { trustNote: string }) {
                             <div className="mt-4 flex items-center justify-between">
                               <div className="flex items-center rounded-full border border-line bg-cream">
                                 <button
-                                  onClick={() => updateQuantity(item.product.id, item.engraving, item.quantity - 1)}
+                                  onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
                                   className="px-3 py-1 font-bold"
                                 >
                                   -
                                 </button>
                                 <span className="px-2 text-[13px] font-bold">{item.quantity}</span>
                                 <button
-                                  onClick={() => updateQuantity(item.product.id, item.engraving, item.quantity + 1)}
+                                  onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
                                   className="px-3 py-1 font-bold"
                                 >
                                   +
                                 </button>
                               </div>
                               <button
-                                onClick={() => removeFromCart(item.product.id, item.engraving)}
+                                onClick={() => removeFromCart(item.product.id)}
                                 className="text-[12px] font-bold text-muted hover:text-ink"
                               >
                                 הסרה
@@ -191,7 +194,6 @@ export default function CartDrawer({ trustNote }: { trustNote: string }) {
                       cartItems.map((i) => ({
                         product: { id: i.product.id },
                         quantity: i.quantity,
-                        engraving: i.engraving,
                       }))
                     )}
                   />

@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { loginAdmin, type LoginState } from "./actions";
+import { loginAdmin, type LoginState } from "./_actions/auth";
 
 const initialState: LoginState = {};
 

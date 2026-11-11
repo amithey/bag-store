@@ -1,58 +1,12 @@
 "use server";
 
-import { randomUUID } from "crypto";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
-import {
-  clearAdminSession,
-  isAdminAuthenticated,
-  isValidAdminPassword,
-  setAdminSession,
-} from "@/lib/adminAuth";
-import { getAdminProducts, getSupabaseAdminClient, type ProductRow } from "@/lib/supabaseProducts";
-import {
-  updateOrderRecordStatus,
-  type OrderStatus,
-} from "@/lib/supabaseOrders";
-import { checkRateLimit, clearRateLimit } from "@/lib/rateLimit";
-import { assertSameOrigin, getClientIpKey } from "@/lib/requestSecurity";
+import { getAdminProducts } from "@/lib/catalog/queries";
+import type { ProductRow } from "@/lib/catalog/types";
+import { getSupabaseAdminClient } from "@/lib/supabase/clients";
+import { assertSameOrigin } from "@/lib/requestSecurity";
 import { getStockStatusFromState, type ProductStockState } from "@/lib/productStock";
-import { saveSiteContent, type SiteContent } from "@/lib/siteContent";
-
-export type LoginState = {
-  error?: string;
-};
-
-export async function loginAdmin(_prev: LoginState, formData: FormData): Promise<LoginState> {
-  await assertSameOrigin();
-
-  const password = String(formData.get("password") || "");
-  const clientKey = await getClientIpKey("admin-login");
-  const limit = checkRateLimit(clientKey, { maxAttempts: 6, windowSeconds: 15 * 60 });
-
-  if (!limit.allowed) {
-    return {
-      error: `יותר מדי ניסיונות כניסה. נסו שוב בעוד ${Math.ceil(limit.retryAfterSeconds / 60)} דקות.`,
-    };
-  }
-
-  if (!isValidAdminPassword(password)) {
-    // Slow down brute-force attempts (defense-in-depth alongside the rate limit,
-    // which is per-instance on serverless). Only penalises wrong passwords.
-    await new Promise((resolve) => setTimeout(resolve, 700));
-    return { error: "פרטי הכניסה לא נכונים." };
-  }
-
-  clearRateLimit(clientKey);
-  await setAdminSession();
-  redirect("/admin");
-}
-
-export async function logoutAdmin() {
-  await assertSameOrigin();
-  await clearAdminSession();
-  redirect("/admin");
-}
+import { requireAdmin } from "./guards";
 
 export async function saveProduct(formData: FormData) {
   await assertSameOrigin();
@@ -132,28 +86,6 @@ export async function saveProduct(formData: FormData) {
   revalidatePath("/admin");
 }
 
-export async function saveSiteContentAction(formData: FormData) {
-  await assertSameOrigin();
-  await requireAdmin();
-
-  const content: SiteContent = {
-    heroTitleLine1: String(formData.get("heroTitleLine1") || ""),
-    heroTitleLine2: String(formData.get("heroTitleLine2") || ""),
-    heroBody: String(formData.get("heroBody") || ""),
-    collectionTitle: String(formData.get("collectionTitle") || ""),
-    trustNote: String(formData.get("trustNote") || ""),
-    processBody: String(formData.get("processBody") || ""),
-  };
-
-  const saved = await saveSiteContent(content);
-  if (!saved) {
-    throw new Error("Failed to save site content.");
-  }
-
-  revalidatePath("/");
-  revalidatePath("/admin");
-}
-
 export async function deleteProduct(formData: FormData) {
   await assertSameOrigin();
   await requireAdmin();
@@ -215,93 +147,6 @@ export async function hideProduct(formData: FormData) {
 
   revalidatePath("/");
   revalidatePath("/admin");
-}
-
-export async function updateOrderStatus(formData: FormData) {
-  await assertSameOrigin();
-  await requireAdmin();
-
-  const id = String(formData.get("id") || "").trim();
-  let status = parseOrderStatus(String(formData.get("status") || "new"));
-  let paymentStatus = parsePaymentStatus(String(formData.get("paymentStatus") || "pending"));
-  const internalNote = formData.has("internalNote")
-    ? String(formData.get("internalNote") || "")
-    : undefined;
-
-  if (!id) return;
-
-  if (status === "paid" || status === "delivered") {
-    paymentStatus = "paid";
-  }
-
-  if (status === "cancelled") {
-    paymentStatus = "cancelled";
-  }
-
-  if (paymentStatus === "paid" && status !== "delivered" && status !== "cancelled") {
-    status = "paid";
-  }
-
-  if (paymentStatus === "cancelled") {
-    status = "cancelled";
-  }
-
-  await updateOrderRecordStatus(id, status, paymentStatus, internalNote);
-  revalidatePath("/admin");
-}
-
-const IMAGE_EXTENSIONS: Record<string, string> = {
-  "image/jpeg": "jpg",
-  "image/png": "png",
-  "image/webp": "webp",
-  "image/gif": "gif",
-};
-const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
-
-export type ImageUploadTicket =
-  | { ok: true; path: string; token: string; publicUrl: string }
-  | { ok: false; error: string };
-
-// Product photos are uploaded by the browser directly to Supabase Storage with
-// a one-time signed URL. Sending them through a Server Action instead would hit
-// the 1MB action body limit (and Vercel's 4.5MB request cap), so any real phone
-// photo would fail. The server still decides the path, type and size.
-export async function createProductImageUpload(
-  contentType: string,
-  size: number
-): Promise<ImageUploadTicket> {
-  await assertSameOrigin();
-  await requireAdmin();
-
-  const ext = IMAGE_EXTENSIONS[contentType];
-  if (!ext) return { ok: false, error: "סוג קובץ לא נתמך. אפשר JPG, PNG, WEBP או GIF." };
-  if (!Number.isFinite(size) || size <= 0 || size > MAX_IMAGE_BYTES) {
-    return { ok: false, error: "התמונה גדולה מדי (עד 8MB)." };
-  }
-
-  const supabase = getSupabaseAdminClient();
-  if (!supabase) return { ok: false, error: "חסר מפתח ניהול של Supabase." };
-
-  const path = `products/${Date.now()}-${randomUUID()}.${ext}`;
-  const bucket = supabase.storage.from("product-images");
-  const { data, error } = await bucket.createSignedUploadUrl(path);
-  if (error || !data) {
-    console.error("[admin] failed to create image upload url:", error);
-    return { ok: false, error: "לא הצלחנו להכין את ההעלאה. נסי שוב." };
-  }
-
-  return {
-    ok: true,
-    path: data.path,
-    token: data.token,
-    publicUrl: bucket.getPublicUrl(data.path).data.publicUrl,
-  };
-}
-
-async function requireAdmin() {
-  if (!(await isAdminAuthenticated())) {
-    redirect("/admin");
-  }
 }
 
 function getNextProductId(products: ProductRow[]) {
@@ -379,27 +224,9 @@ function canPublishProduct(primaryImage: string | undefined, priceNum: number, f
   );
 }
 
-function parseOrderStatus(value: string): OrderStatus {
-  const allowed: OrderStatus[] = [
-    "new",
-    "in_progress",
-    "contacted",
-    "waiting_payment",
-    "ready_for_delivery",
-    "paid",
-    "delivered",
-    "cancelled",
-  ];
-  return allowed.includes(value as OrderStatus) ? (value as OrderStatus) : "new";
-}
-
 function parseStockState(value: string): ProductStockState {
   const allowed: ProductStockState[] = ["ready", "made_to_order", "last", "sold_out", "custom"];
   return allowed.includes(value as ProductStockState) ? (value as ProductStockState) : "ready";
-}
-
-function parsePaymentStatus(value: string): "pending" | "paid" | "cancelled" {
-  return value === "paid" || value === "cancelled" ? value : "pending";
 }
 
 function isSafeImageReference(value: string) {

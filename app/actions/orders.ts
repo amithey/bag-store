@@ -1,5 +1,6 @@
 "use server";
 
+import { getHebrewName } from "@/lib/catalog/names";
 import { randomInt } from "crypto";
 import { z } from "zod";
 import {
@@ -10,7 +11,7 @@ import {
 import { sendOrderEmails } from "@/lib/email";
 import { sendWhatsAppOrderAlert } from "@/lib/whatsapp";
 import { saveOrderRecord } from "@/lib/supabaseOrders";
-import { getOrderableProducts } from "@/lib/supabaseProducts";
+import { getOrderableProducts } from "@/lib/catalog/queries";
 import { isSoldOut } from "@/lib/productStock";
 import { checkRateLimit } from "@/lib/rateLimit";
 import { assertSameOrigin, getClientIpKey } from "@/lib/requestSecurity";
@@ -54,7 +55,6 @@ const CartItemSchema = z.object({
     id: z.string().min(1).max(40),
   }),
   quantity: z.number().int().min(1).max(20),
-  engraving: z.string().max(40).optional(),
 });
 
 export type OrderState = {
@@ -158,7 +158,7 @@ export async function submitOrder(
     // Sold-out items are blocked in the UI, but re-check here so a tampered
     // request can't place an order for a bag that is no longer available.
     if (isSoldOut(product.stockStatus)) {
-      const label = product.name.split(" | ")[0];
+      const label = getHebrewName(product.name);
       return {
         status: "error",
         errors: { cart: "פריט בסל אזל מהמלאי." },
@@ -168,16 +168,14 @@ export async function submitOrder(
     cartItems.push({
       product: { id: product.id, name: product.name, priceNum: product.priceNum },
       quantity: item.quantity,
-      engraving: item.engraving,
     });
   }
 
   const total = cartItems.reduce((sum, item) => sum + item.product.priceNum * item.quantity, 0);
   const cartDescription = cartItems
     .map((item) => {
-      const engraving = item.engraving ? ` (חריטה: ${item.engraving})` : "";
       const lineTotal = item.product.priceNum * item.quantity;
-      return `• ${item.product.name}${engraving} x ${item.quantity} - ₪${lineTotal.toLocaleString("he-IL")}`;
+      return `• ${item.product.name} x ${item.quantity} - ₪${lineTotal.toLocaleString("he-IL")}`;
     })
     .join("\n");
 

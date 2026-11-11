@@ -1,12 +1,11 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { Product } from "@/lib/products";
+import { Product } from "@/lib/catalog/types";
 
 export type CartItem = {
   product: Product;
   quantity: number;
-  engraving: string;
 };
 
 type CartContextType = {
@@ -14,10 +13,9 @@ type CartContextType = {
   isOpen: boolean;
   activeProduct: Product | null;
   setActiveProduct: (product: Product | null) => void;
-  addToCart: (product: Product, engraving?: string) => void;
-  removeFromCart: (productId: string, engraving: string) => void;
-  updateQuantity: (productId: string, engraving: string, quantity: number) => void;
-  updateEngraving: (productId: string, oldEngraving: string, newEngraving: string) => void;
+  addToCart: (product: Product) => void;
+  removeFromCart: (productId: string) => void;
+  updateQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
   setIsOpen: (isOpen: boolean) => void;
   cartTotal: number;
@@ -40,6 +38,9 @@ export function CartProvider({
 
   // Load cart from localStorage on mount
   useEffect(() => {
+    // localStorage only exists in the browser, so the saved cart can only be
+    // read after mount; reading it during render would break hydration.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsMounted(true);
     try {
       const savedCart = localStorage.getItem("smadar_cart");
@@ -55,6 +56,7 @@ export function CartProvider({
   // catalog so prices/names shown match what the server will charge, and drop
   // bags that were removed or hidden since.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (isMounted) setCartItems((items) => syncWithCatalog(items, catalog));
   }, [catalog, isMounted]);
 
@@ -65,12 +67,9 @@ export function CartProvider({
     }
   }, [cartItems, isMounted]);
 
-  const addToCart = (product: Product, engraving: string = "") => {
+  const addToCart = (product: Product) => {
     setCartItems((prevItems) => {
-      // Find if item with same product ID AND engraving already exists
-      const existingIndex = prevItems.findIndex(
-        (item) => item.product.id === product.id && item.engraving === engraving
-      );
+      const existingIndex = prevItems.findIndex((item) => item.product.id === product.id);
 
       if (existingIndex > -1) {
         return prevItems.map((item, index) =>
@@ -78,62 +77,23 @@ export function CartProvider({
         );
       }
 
-      return [...prevItems, { product, quantity: 1, engraving }];
+      return [...prevItems, { product, quantity: 1 }];
     });
     setIsOpen(true); // Auto-open cart drawer when adding item
   };
 
-  const removeFromCart = (productId: string, engraving: string) => {
-    setCartItems((prevItems) =>
-      prevItems.filter(
-        (item) => !(item.product.id === productId && item.engraving === engraving)
-      )
-    );
+  const removeFromCart = (productId: string) => {
+    setCartItems((prevItems) => prevItems.filter((item) => item.product.id !== productId));
   };
 
-  const updateQuantity = (productId: string, engraving: string, quantity: number) => {
+  const updateQuantity = (productId: string, quantity: number) => {
     if (quantity <= 0) {
-      removeFromCart(productId, engraving);
+      removeFromCart(productId);
       return;
     }
     setCartItems((prevItems) =>
-      prevItems.map((item) =>
-        item.product.id === productId && item.engraving === engraving
-          ? { ...item, quantity }
-          : item
-      )
+      prevItems.map((item) => (item.product.id === productId ? { ...item, quantity } : item))
     );
-  };
-
-  const updateEngraving = (productId: string, oldEngraving: string, newEngraving: string) => {
-    setCartItems((prevItems) => {
-      // Check if there is already an item with the target engraving to merge them
-      const targetIndex = prevItems.findIndex(
-        (item) => item.product.id === productId && item.engraving === newEngraving
-      );
-      const sourceIndex = prevItems.findIndex(
-        (item) => item.product.id === productId && item.engraving === oldEngraving
-      );
-
-      if (sourceIndex === -1) return prevItems;
-
-      if (targetIndex > -1 && targetIndex !== sourceIndex) {
-        // Merge quantities into the target and drop the source
-        const mergedQuantity = prevItems[targetIndex].quantity + prevItems[sourceIndex].quantity;
-        return prevItems
-          .map((item, index) =>
-            index === targetIndex ? { ...item, quantity: mergedQuantity } : item
-          )
-          .filter((_, index) => index !== sourceIndex);
-      }
-
-      // Simply rename
-      return prevItems.map((item, index) =>
-        index === sourceIndex
-          ? { ...item, engraving: newEngraving.substring(0, 3).toUpperCase() }
-          : item
-      );
-    });
   };
 
   const clearCart = () => {
@@ -157,7 +117,6 @@ export function CartProvider({
         addToCart,
         removeFromCart,
         updateQuantity,
-        updateEngraving,
         clearCart,
         setIsOpen,
         cartTotal,
@@ -177,21 +136,25 @@ export function useCart() {
   return context;
 }
 
+// Rebuilds the saved cart from the live catalog. Old saved carts could hold the
+// same bag on several lines (one per engraving, a feature that no longer
+// exists), so lines for the same bag are merged here.
 function syncWithCatalog(saved: unknown, catalog: Product[]): CartItem[] {
   if (!Array.isArray(saved)) return [];
   const byId = new Map(catalog.map((product) => [product.id, product]));
+  const merged = new Map<string, CartItem>();
 
-  return saved.flatMap((item) => {
+  for (const item of saved) {
     const product = byId.get(item?.product?.id);
     const quantity = Number(item?.quantity);
-    if (!product || !Number.isInteger(quantity) || quantity < 1) return [];
+    if (!product || !Number.isInteger(quantity) || quantity < 1) continue;
 
-    return [
-      {
-        product,
-        quantity: Math.min(quantity, 20),
-        engraving: typeof item.engraving === "string" ? item.engraving : "",
-      },
-    ];
-  });
+    const existing = merged.get(product.id);
+    merged.set(product.id, {
+      product,
+      quantity: Math.min((existing?.quantity ?? 0) + quantity, 20),
+    });
+  }
+
+  return Array.from(merged.values());
 }

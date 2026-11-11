@@ -4,7 +4,7 @@ import {
   type OrderRecord,
   type OrderStatus,
 } from "@/lib/supabaseOrders";
-import { updateOrderStatus } from "./actions";
+import { updateOrderStatus } from "./_actions/orders";
 
 const orderStatuses = Object.keys(orderStatusLabels) as OrderStatus[];
 const paymentStatuses = Object.keys(paymentStatusLabels) as Array<"pending" | "paid" | "cancelled">;
