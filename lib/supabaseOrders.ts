@@ -1,4 +1,4 @@
-import { getSupabaseAdminClient } from "./supabaseProducts";
+import { getSupabaseAdminClient } from "./supabase/clients";
 
 export type OrderStatus =
   | "new"

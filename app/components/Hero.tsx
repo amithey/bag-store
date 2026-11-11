@@ -1,10 +1,11 @@
 "use client";
 
-import Image from "next/image";
+import { getEnglishName } from "@/lib/catalog/names";
 import { motion } from "framer-motion";
-import { type Product } from "@/lib/products";
-import type { SiteContent } from "@/lib/siteContent";
+import { type Product } from "@/lib/catalog/types";
+import type { SiteContent } from "@/lib/site-content";
 import { serifDisplay } from "../fonts";
+import ProductImage from "./product/ProductImage";
 
 export default function Hero({
   productCount,
@@ -16,7 +17,7 @@ export default function Hero({
   content: SiteContent;
 }) {
   const heroImage = featured?.image || "/images/full/bag_pattern.jpg";
-  const heroEnglish = featured?.name?.split(" | ")[1];
+  const heroEnglish = (featured ? getEnglishName(featured.name) : undefined);
   const heroBadge = featured
     ? `דגם ${featured.id}${heroEnglish ? ` / ${heroEnglish}` : ""}`
     : "דגם 02 / Stripes Flap";
@@ -79,14 +80,13 @@ export default function Hero({
         >
           <div className="relative">
             <div className="soft-ring relative aspect-[4/5] overflow-hidden rounded-[28px] bg-white md:aspect-[5/4]">
-              <Image
+              {/* The hero is always a full-bleed crop, whatever fit the bag itself uses. */}
+              <ProductImage
+                product={{ imageFit: "cover" }}
                 src={heroImage}
                 alt={featured?.alt || "תיק סרוג בדוגמת פסים"}
-                fill
                 priority
-                unoptimized
                 sizes="(min-width: 768px) 58vw, 100vw"
-                className="object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-ink/28 via-transparent to-white/10" />
               <div className="absolute bottom-5 right-5 rounded-full bg-white/86 px-5 py-3 text-[12px] font-bold tracking-[0.14em] text-ink backdrop-blur-md">

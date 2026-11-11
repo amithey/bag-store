@@ -4,11 +4,12 @@ import AdminProductsPanel from "./AdminProductsPanel";
 import OrdersPanel from "./OrdersPanel";
 import ProductForm from "./ProductForm";
 import SiteContentForm from "./SiteContentForm";
-import { logoutAdmin } from "./actions";
+import { logoutAdmin } from "./_actions/auth";
 import { getAdminSessionTtlMinutes, isAdminAuthenticated, isAdminConfigured } from "@/lib/adminAuth";
-import { getAdminProducts, getSupabaseAdminClient } from "@/lib/supabaseProducts";
+import { getAdminProducts } from "@/lib/catalog/queries"
+import { getSupabaseAdminClient } from "@/lib/supabase/clients";
 import { getRecentOrders } from "@/lib/supabaseOrders";
-import { getAdminSiteContent } from "@/lib/siteContent";
+import { getAdminSiteContent } from "@/lib/site-content";
 
 export const metadata: Metadata = {
   title: "ניהול | smadar heymans",
@@ -106,7 +107,6 @@ async function AdminContent() {
 
   const [products, orders, siteContent] = loaded;
   const activeOrders = orders.filter(isActiveOrder);
-  const pastOrders = orders.length - activeOrders.length;
   const monthOrders = orders.filter(isCurrentMonthOrder);
   const paidOrders = orders.filter((order) => order.payment_status === "paid");
 

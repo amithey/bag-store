@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import type { ProductRow } from "@/lib/supabaseProducts";
+import type { ProductRow } from "@/lib/catalog/types";
 import { getStockState, stockStateLabels } from "@/lib/productStock";
 import AdminImageManager from "./AdminImageManager";
 import AdminImageUploader from "./AdminImageUploader";
-import { deleteProduct, hideProduct, saveProduct } from "./actions";
+import { deleteProduct, hideProduct, saveProduct } from "./_actions/products";
 
 const inputClass =
   "w-full rounded-2xl border border-line bg-white px-4 py-3 text-[14px] text-ink outline-none focus:border-ink";

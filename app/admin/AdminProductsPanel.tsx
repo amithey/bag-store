@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { ProductRow } from "@/lib/supabaseProducts";
+import type { ProductRow } from "@/lib/catalog/types";
 import { getStockState } from "@/lib/productStock";
 import ProductForm from "./ProductForm";
 

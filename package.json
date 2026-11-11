@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "deploy": "vercel --prod",
-    "lint": "next lint"
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.108.1",
@@ -26,6 +27,8 @@
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "autoprefixer": "^10.4.20",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "^16.3.5",
     "pg": "^8.21.0",
     "postcss": "^8.5.1",
     "tailwindcss": "^3.4.17",

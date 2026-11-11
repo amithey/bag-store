@@ -1,6 +1,7 @@
 "use client";
 
-import { type Product } from "@/lib/products";
+import { getHebrewName } from "@/lib/catalog/names";
+import { type Product } from "@/lib/catalog/types";
 import { isSoldOut } from "@/lib/productStock";
 import { SMADAR_WHATSAPP } from "@/lib/orderConstants";
 import { useCart } from "../../context/CartContext";
@@ -10,7 +11,7 @@ import { useCart } from "../../context/CartContext";
 export default function ProductPageActions({ product }: { product: Product }) {
   const { addToCart } = useCart();
   const soldOut = isSoldOut(product.stockStatus);
-  const productName = product.name.split(" | ")[0];
+  const productName = getHebrewName(product.name);
   const whatsappText = `היי, רציתי לשאול לגבי הדגם ${productName} (${product.id}).`;
   const whatsappUrl = `https://api.whatsapp.com/send?phone=${SMADAR_WHATSAPP}&text=${encodeURIComponent(whatsappText)}`;
 

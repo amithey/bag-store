@@ -2,7 +2,7 @@
 
 import { useState, type ChangeEvent } from "react";
 import { createClient } from "@supabase/supabase-js";
-import { createProductImageUpload } from "./actions";
+import { createProductImageUpload } from "./_actions/images";
 
 // Uploads chosen photos directly from the browser to Supabase Storage using a
 // signed URL from the server, then hands the resulting public URLs to the

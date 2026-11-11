@@ -1,29 +1,24 @@
 "use client";
 
-import Image from "next/image";
-import { useEffect, useState } from "react";
+import { getHebrewName, getEnglishName } from "@/lib/catalog/names";
 import { AnimatePresence, motion } from "framer-motion";
 import { SMADAR_WHATSAPP } from "@/lib/orderConstants";
 import { isSoldOut } from "@/lib/productStock";
 import { useCart } from "../context/CartContext";
+import GalleryMain from "./product/GalleryMain";
+import GalleryThumbs from "./product/GalleryThumbs";
+import { useGallery } from "./product/useGallery";
 
 export default function ProductModal() {
   const { activeProduct, setActiveProduct, addToCart } = useCart();
-  const [activeImage, setActiveImage] = useState("");
-
-  useEffect(() => {
-    setActiveImage(activeProduct?.image || "");
-  }, [activeProduct]);
+  const gallery = useGallery(activeProduct);
 
   if (!activeProduct) return null;
 
   const close = () => setActiveProduct(null);
-  const images = activeProduct.images?.length ? activeProduct.images : [activeProduct.image];
-  const selectedImage = activeImage || images[0];
-  const activeIndex = Math.max(0, images.indexOf(selectedImage));
-  const imageClass = activeProduct.imageFit === "contain" ? "object-contain p-4" : "object-cover";
+  const { images, activeIndex } = gallery;
   const soldOut = isSoldOut(activeProduct.stockStatus);
-  const productName = activeProduct.name.split(" | ")[0];
+  const productName = getHebrewName(activeProduct.name);
   const whatsappText = `היי, רציתי לשאול לגבי הדגם ${productName} (${activeProduct.id}).`;
   const whatsappUrl = `https://api.whatsapp.com/send?phone=${SMADAR_WHATSAPP}&text=${encodeURIComponent(whatsappText)}`;
 
@@ -40,11 +35,6 @@ export default function ProductModal() {
     window.setTimeout(() => {
       window.dispatchEvent(new Event("smadar:checkout"));
     }, 0);
-  };
-
-  const showImage = (direction: -1 | 1) => {
-    const nextIndex = (activeIndex + direction + images.length) % images.length;
-    setActiveImage(images[nextIndex]);
   };
 
   return (
@@ -74,51 +64,12 @@ export default function ProductModal() {
           </button>
 
           <div className="relative hidden bg-bone md:col-span-6 md:block md:h-[88vh] md:max-h-[760px]">
-            <Image
-              src={selectedImage}
-              alt={activeProduct.alt}
-              fill
-              unoptimized
-              priority
-              sizes="50vw"
-              className={imageClass}
-            />
-            {images.length > 1 && (
-              <div className="absolute inset-x-5 bottom-5 flex items-center justify-between">
-                <button
-                  type="button"
-                  onClick={() => showImage(-1)}
-                  className="grid h-11 w-11 place-items-center rounded-full bg-white/86 text-xl font-bold text-ink backdrop-blur"
-                  aria-label="תמונה קודמת"
-                >
-                  ‹
-                </button>
-                <span className="rounded-full bg-white/86 px-4 py-2 text-[12px] font-bold text-ink backdrop-blur">
-                  {activeIndex + 1} / {images.length}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => showImage(1)}
-                  className="grid h-11 w-11 place-items-center rounded-full bg-white/86 text-xl font-bold text-ink backdrop-blur"
-                  aria-label="תמונה הבאה"
-                >
-                  ›
-                </button>
-              </div>
-            )}
+            <GalleryMain product={activeProduct} gallery={gallery} sizes="50vw" />
           </div>
 
           <div className="flex max-h-[94vh] flex-col overflow-y-auto md:col-span-6">
             <div className="relative aspect-[16/10] bg-bone md:hidden">
-              <Image
-                src={selectedImage}
-                alt={activeProduct.alt}
-                fill
-                unoptimized
-                priority
-                sizes="100vw"
-                className={imageClass}
-              />
+              <GalleryMain product={activeProduct} gallery={gallery} sizes="100vw" controls={false} />
             </div>
 
             <div className="p-6 pb-4 md:p-10 md:pb-5">
@@ -130,28 +81,7 @@ export default function ProductModal() {
                       {activeIndex + 1} מתוך {images.length}
                     </span>
                   </div>
-                  <div className="flex gap-2 overflow-x-auto pb-1">
-                    {images.map((image, index) => (
-                      <button
-                        key={image}
-                        type="button"
-                        onClick={() => setActiveImage(image)}
-                        className={`relative h-16 w-16 shrink-0 overflow-hidden rounded-2xl border bg-bone ${
-                          image === selectedImage ? "border-ink ring-2 ring-ink/10" : "border-line"
-                        }`}
-                        aria-label={`תמונה ${index + 1} של ${activeProduct.name}`}
-                      >
-                        <Image
-                          src={image}
-                          alt=""
-                          fill
-                          unoptimized
-                          sizes="64px"
-                          className={activeProduct.imageFit === "contain" ? "object-contain p-1" : "object-cover"}
-                        />
-                      </button>
-                    ))}
-                  </div>
+                  <GalleryThumbs product={activeProduct} gallery={gallery} padding="p-1" />
                 </div>
               )}
 
@@ -160,7 +90,7 @@ export default function ProductModal() {
                 {productName}
               </h2>
               <p className="mt-2 text-[13px] font-bold uppercase tracking-[0.18em] text-taupe">
-                {activeProduct.name.split(" | ")[1]}
+                {getEnglishName(activeProduct.name)}
               </p>
 
               <div className="mt-7 grid gap-3 text-[14px] md:grid-cols-2">

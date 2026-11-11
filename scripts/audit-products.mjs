@@ -86,6 +86,16 @@ async function loadEnvLocal() {
     if (!match) continue;
     const [, key, rawValue] = match;
     if (process.env[key]) continue;
-    process.env[key] = rawValue.trim().replace(/^["'](.*)["']$/, "$1");
+    // `vercel env pull` writes a stray line break at the end of a value as escaped text.
+    process.env[key] = stripEscapedLineBreaks(
+      rawValue.trim().replace(/^["'](.*)["']$/, "$1")
+    );
   }
+}
+
+// `vercel env pull` writes a stray line break at the end of a value as the
+// escaped text (backslash + r / n), so it has to be removed explicitly.
+function stripEscapedLineBreaks(value) {
+  const BS = String.fromCharCode(92);
+  return value.split(BS + "r").join("").split(BS + "n").join("").trim();
 }

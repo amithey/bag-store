@@ -1,5 +1,5 @@
-import type { SiteContent } from "@/lib/siteContent";
-import { saveSiteContentAction } from "./actions";
+import type { SiteContent } from "@/lib/site-content";
+import { saveSiteContentAction } from "./_actions/content";
 
 const inputClass =
   "w-full rounded-2xl border border-line bg-white px-4 py-3 text-[14px] text-ink outline-none focus:border-ink";

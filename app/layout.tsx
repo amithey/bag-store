@@ -5,8 +5,8 @@ import SmoothScroll from "./components/SmoothScroll";
 import ScrollProgress from "./components/ScrollProgress";
 import CartDrawer from "./components/CartDrawer";
 import ProductModal from "./components/ProductModal";
-import { getSiteContent } from "@/lib/siteContent";
-import { getProducts } from "@/lib/supabaseProducts";
+import { getSiteContent } from "@/lib/site-content";
+import { getProducts } from "@/lib/catalog/queries";
 import { siteUrl } from "@/lib/site";
 
 const siteTitle = "smadar heymans | תיקי סריגה בעבודת יד";

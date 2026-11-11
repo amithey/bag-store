@@ -1,5 +1,5 @@
-import { processSteps } from "@/lib/products";
-import type { SiteContent } from "@/lib/siteContent";
+import { processSteps } from "@/lib/home-content";
+import type { SiteContent } from "@/lib/site-content";
 import FadeIn from "./FadeIn";
 
 export default function Process({ content }: { content: SiteContent }) {
