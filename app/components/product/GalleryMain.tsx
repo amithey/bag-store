@@ -9,17 +9,20 @@ export default function GalleryMain({
   gallery,
   sizes,
   controls = true,
+  preload = false,
 }: {
   product: Product;
   gallery: GalleryState;
   sizes: string;
   controls?: boolean;
+  // True only where this photo is the main one of the whole page.
+  preload?: boolean;
 }) {
   const { images, selected, activeIndex, show } = gallery;
 
   return (
     <>
-      <ProductImage product={product} src={selected} alt={product.alt} sizes={sizes} priority />
+      <ProductImage product={product} src={selected} alt={product.alt} sizes={sizes} eager preload={preload} />
       {controls && images.length > 1 && (
         <div className="absolute inset-x-5 bottom-5 flex items-center justify-between">
           <button

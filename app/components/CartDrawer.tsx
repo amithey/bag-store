@@ -138,7 +138,6 @@ export default function CartDrawer({ trustNote }: { trustNote: string }) {
                               src={item.product.image}
                               alt={item.product.alt}
                               fill
-                              unoptimized
                               sizes="96px"
                               className="object-cover"
                             />

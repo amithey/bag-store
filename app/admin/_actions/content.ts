@@ -23,6 +23,8 @@ export async function saveSiteContentAction(formData: FormData) {
     throw new Error("Failed to save site content.");
   }
 
-  revalidatePath("/");
-  revalidatePath("/admin");
+  // "layout" refreshes every page under the root layout: the home page, every
+  // product page and the sitemap. The root layout also loads the catalog (for
+  // the cart), so refreshing only "/" would leave product pages stale.
+  revalidatePath("/", "layout");
 }
