@@ -9,6 +9,8 @@ import { GRID_CARD_SIZES, STRIP_CARD_SIZES } from "@/lib/images/sizes";
 const EAGER_GRID_CARDS = 3;
 const EAGER_STRIP_CARDS = 5;
 const PARALLEL_DOWNLOADS = 3;
+// A visitor who never scrolls still gets their photos warmed, after this long.
+const FALLBACK_START_MS = 6000;
 
 type Target = { src: string; sizes: string };
 
@@ -60,9 +62,8 @@ export default function ImageWarmup({ sources }: { sources: string[] }) {
       for (let i = 0; i < PARALLEL_DOWNLOADS; i++) loadNext();
     };
 
-    // Wait for the page itself, then for an idle moment.
+    // Safari has no requestIdleCallback, so fall back to a short delay.
     const whenIdle = () => {
-      // Safari has no requestIdleCallback, so fall back to a short delay.
       if (typeof window.requestIdleCallback === "function") {
         window.requestIdleCallback(start, { timeout: 4000 });
       } else {
@@ -70,12 +71,35 @@ export default function ImageWarmup({ sources }: { sources: string[] }) {
       }
     };
 
-    if (document.readyState === "complete") whenIdle();
-    else window.addEventListener("load", whenIdle, { once: true });
+    // Do not start while the page is still settling. Begin when the visitor
+    // first shows they are going to look around (scroll, touch, key), which is
+    // exactly when the photos start to matter; or, for someone who just sits on
+    // the first screen, after a few quiet seconds.
+    const INTENT_EVENTS = ["scroll", "pointerdown", "touchstart", "keydown"] as const;
+    let begun = false;
+    let fallbackTimer = 0;
+
+    const begin = () => {
+      if (begun || cancelled) return;
+      begun = true;
+      window.clearTimeout(fallbackTimer);
+      for (const name of INTENT_EVENTS) window.removeEventListener(name, begin);
+      whenIdle();
+    };
+
+    const armTriggers = () => {
+      for (const name of INTENT_EVENTS) window.addEventListener(name, begin, { passive: true });
+      fallbackTimer = window.setTimeout(begin, FALLBACK_START_MS);
+    };
+
+    if (document.readyState === "complete") armTriggers();
+    else window.addEventListener("load", armTriggers, { once: true });
 
     return () => {
       cancelled = true;
-      window.removeEventListener("load", whenIdle);
+      window.clearTimeout(fallbackTimer);
+      window.removeEventListener("load", armTriggers);
+      for (const name of INTENT_EVENTS) window.removeEventListener(name, begin);
     };
   }, [sources]);
 
