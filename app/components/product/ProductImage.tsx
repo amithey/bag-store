@@ -1,11 +1,15 @@
 import Image from "next/image";
 import type { Product } from "@/lib/catalog/types";
+import { cropToStyle, isCroppableFrame, scaleSizes, zoomFactor, type Frame } from "@/lib/images/crop";
 
 type Props = {
-  product: Pick<Product, "imageFit">;
+  // Only the framing settings are needed, so a stand-in object works too.
+  product: Pick<Product, "imageSettings">;
   src: string;
   alt: string;
   sizes: string;
+  // Which shape this photo is shown in. Decides which saved crop applies.
+  frame?: Frame;
   // The one image that decides how fast the page feels (the biggest photo in
   // the first screen). Preloaded and fetched at high priority. Use it for at
   // most one image per page, otherwise they compete and the key one gets slower.
@@ -14,42 +18,66 @@ type Props = {
   // likely on screen right away but are not the single most important one.
   eager?: boolean;
   draggable?: boolean;
-  // Padding applied in "contain" mode so a whole bag never touches the edge.
-  padding?: string;
-  // Extra classes (transitions, hover effects) appended to the fit classes.
+  // Extra classes (transitions, hover effects) for the layer holding the photo.
   className?: string;
 };
 
 // The single place that decides how a bag photo fills its frame. The parent
-// supplies a positioned, sized box (an aspect-ratio frame); this fills it.
+// supplies a positioned, sized box; this fills it.
 //
-// Photos are resized and converted to AVIF/WebP by Next's image optimizer, so
-// `sizes` must describe the real rendered width: it is what makes a phone ask
-// for a small file instead of the original.
+//  - By default the WHOLE photo is shown, so a bag is never cut off.
+//  - If the owner saved a crop for this photo and frame, exactly that part is
+//    shown (see lib/images/crop for the maths).
+//  - The hero is the one exception: it is a full-bleed picture and fills its
+//    frame unless a crop says otherwise.
+//
+// `sizes` must describe the real rendered width: it makes a phone ask for a
+// small file instead of the original. For a zoomed crop it is scaled up so the
+// photo does not look soft.
 export default function ProductImage({
   product,
   src,
   alt,
   sizes,
+  frame = "card",
   preload,
   eager,
   draggable,
-  padding = "p-4",
   className = "",
 }: Props) {
-  const fit = product.imageFit === "contain" ? `object-contain ${padding}` : "object-cover";
+  const setting = frame === "hero" ? undefined : product.imageSettings[src];
+  const crop = isCroppableFrame(frame) ? setting?.[frame] : undefined;
+  const background = setting?.bg || undefined;
+
+  const common = {
+    fill: true as const,
+    preload,
+    loading: eager && !preload ? ("eager" as const) : undefined,
+    fetchPriority: preload ? ("high" as const) : undefined,
+    draggable,
+  };
 
   return (
-    <Image
-      src={src}
-      alt={alt}
-      fill
-      preload={preload}
-      loading={eager && !preload ? "eager" : undefined}
-      fetchPriority={preload ? "high" : undefined}
-      draggable={draggable}
-      sizes={sizes}
-      className={`${fit} ${className}`.trim()}
-    />
+    <div className={`absolute inset-0 ${className}`.trim()} style={background ? { background } : undefined}>
+      {crop ? (
+        <div style={cropToStyle(crop)}>
+          <Image
+            {...common}
+            src={src}
+            alt={alt}
+            sizes={scaleSizes(sizes, zoomFactor(crop))}
+            className="object-cover"
+          />
+        </div>
+      ) : (
+        <Image
+          {...common}
+          src={src}
+          alt={alt}
+          sizes={sizes}
+          className={frame === "hero" ? "object-cover" : "object-contain"}
+        />
+      )}
+    </div>
   );
 }

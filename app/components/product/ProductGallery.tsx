@@ -11,7 +11,7 @@ export default function ProductGallery({ product }: { product: Product }) {
 
   return (
     <div>
-      <div className="shimmer relative aspect-[4/5] overflow-hidden rounded-[24px] bg-bone md:aspect-[3/4]">
+      <div className="shimmer relative aspect-[4/5] overflow-hidden rounded-[24px] bg-bone">
         <GalleryMain
           product={product}
           gallery={gallery}

@@ -65,7 +65,6 @@ export async function saveProduct(formData: FormData) {
     price_num: safePriceNum,
     image: images[0] || "",
     images,
-    image_fit: "cover",
     alt: createProductAlt(productName, id),
     stock_status: stockStatus,
     description: String(formData.get("description") || "").trim(),

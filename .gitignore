@@ -8,3 +8,10 @@ out
 *.tsbuildinfo
 
 .vercel
+
+# local database backups (made before schema changes)
+backups/
+
+# Written automatically by `next dev` (notes for AI tools); not part of the project
+AGENTS.md
+CLAUDE.md

@@ -5,8 +5,11 @@ import { demoProducts } from "./demo";
 import { rowToProduct } from "./mappers";
 import type { Catalog, Product, ProductRow } from "./types";
 
-const PRODUCT_COLUMNS =
-  "id,name,material,dimensions,price_num,image,images,image_fit,alt,stock_status,description,category,is_active,sort_order";
+// Every column, on purpose. The photo-framing columns are added by a separate
+// SQL step (supabase/image-settings.sql); naming them here would make every
+// query fail until that step has been run. The mapper falls back to defaults for
+// any column that is not there yet.
+const PRODUCT_COLUMNS = "*";
 
 // Storefront catalog. Deduplicated per request with cache() since the layout,
 // the page and its metadata all read it.

@@ -1,3 +1,4 @@
+import { parseImageSettings } from "../images/settings";
 import type { Product, ProductRow } from "./types";
 
 export function rowToProduct(row: ProductRow): Product {
@@ -12,7 +13,9 @@ export function rowToProduct(row: ProductRow): Product {
     priceNum: row.price_num,
     image: images[0] || row.image,
     images,
-    imageFit: row.image_fit === "contain" ? "contain" : "cover",
+    imageSettings: parseImageSettings(row.image_settings),
+    displayMode: row.display_mode === "pair" ? "pair" : "single",
+    pairLayout: row.pair_layout === "stacked" ? "stacked" : "side",
     alt: row.alt,
     stockStatus: row.stock_status,
     description: row.description,
@@ -29,7 +32,9 @@ export function productToRow(product: Product, sortOrder: number): ProductRow {
     price_num: product.priceNum,
     image: product.image,
     images: product.images?.length ? product.images : [product.image],
-    image_fit: product.imageFit || "cover",
+    image_settings: product.imageSettings,
+    display_mode: product.displayMode,
+    pair_layout: product.pairLayout,
     alt: product.alt,
     stock_status: product.stockStatus,
     description: product.description,
