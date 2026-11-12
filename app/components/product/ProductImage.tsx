@@ -50,7 +50,6 @@ export default function ProductImage({
   const background = setting?.bg || undefined;
 
   const common = {
-    alt,
     fill: true as const,
     preload,
     loading: eager && !preload ? ("eager" as const) : undefined,
@@ -62,12 +61,19 @@ export default function ProductImage({
     <div className={`absolute inset-0 ${className}`.trim()} style={background ? { background } : undefined}>
       {crop ? (
         <div style={cropToStyle(crop)}>
-          <Image {...common} src={src} sizes={scaleSizes(sizes, zoomFactor(crop))} className="object-cover" />
+          <Image
+            {...common}
+            src={src}
+            alt={alt}
+            sizes={scaleSizes(sizes, zoomFactor(crop))}
+            className="object-cover"
+          />
         </div>
       ) : (
         <Image
           {...common}
           src={src}
+          alt={alt}
           sizes={sizes}
           className={frame === "hero" ? "object-cover" : "object-contain"}
         />
