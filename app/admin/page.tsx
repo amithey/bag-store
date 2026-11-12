@@ -1,238 +1,61 @@
 import type { Metadata } from "next";
-import AdminLogin from "./AdminLogin";
-import AdminProductsPanel from "./AdminProductsPanel";
-import OrdersPanel from "./OrdersPanel";
-import ProductForm from "./ProductForm";
-import SiteContentForm from "./SiteContentForm";
-import { logoutAdmin } from "./_actions/auth";
+import { redirect } from "next/navigation";
 import { getAdminSessionTtlMinutes, isAdminAuthenticated, isAdminConfigured } from "@/lib/adminAuth";
-import { getAdminProducts } from "@/lib/catalog/queries"
 import { getSupabaseAdminClient } from "@/lib/supabase/clients";
-import { getRecentOrders } from "@/lib/supabaseOrders";
-import { getAdminSiteContent } from "@/lib/site-content";
+import AdminLogin from "./AdminLogin";
+import SetupBox from "./_components/SetupBox";
 
 export const metadata: Metadata = {
   title: "ניהול | smadar heymans",
-  robots: {
-    index: false,
-    follow: false,
-  },
+  robots: { index: false, follow: false },
 };
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminPage() {
-  const adminConfigured = isAdminConfigured();
+// The front door of the admin. Signed in: straight to the bags. Not signed in:
+// the password box. Anything missing from the setup is explained here.
+export default async function AdminEntry() {
+  const configured = isAdminConfigured();
   const hasServiceKey = Boolean(getSupabaseAdminClient());
-  const isAuthenticated = await isAdminAuthenticated();
+
+  if (configured && hasServiceKey && (await isAdminAuthenticated())) redirect("/admin/products");
 
   return (
-    <main dir="rtl" className="min-h-screen bg-cream px-5 py-10 text-ink md:px-10">
-      <div className="mx-auto max-w-6xl">
-        <div className="flex flex-col gap-5 border-b border-line pb-7 md:flex-row md:items-end md:justify-between">
-          <div>
-            <p className="eyebrow text-gold">smadar heymans</p>
-            <h1 className="mt-3 text-[40px] font-semibold leading-tight md:text-[58px]">
-              ניהול תיקים
-            </h1>
-            <p className="mt-3 max-w-2xl text-[15px] leading-7 text-muted">
-              כאן אפשר להוסיף תיקים, להחליף תמונות, לעדכן מחיר ולסמן מה מוצג באתר.
-            </p>
-            {isAuthenticated && (
-              <p className="mt-2 text-[13px] leading-6 text-muted">
-                מטעמי אבטחה, חיבור הניהול מתנתק אוטומטית אחרי עד {getAdminSessionTtlMinutes()} דקות.
-              </p>
-            )}
-          </div>
+    <main dir="rtl" className="min-h-screen bg-cream px-5 py-14 text-ink md:px-10">
+      <div className="mx-auto max-w-xl">
+        <p className="eyebrow text-gold">smadar heymans</p>
+        <h1 className="mt-3 text-[40px] font-semibold leading-tight md:text-[52px]">ניהול האתר</h1>
+        <p className="mt-3 text-[15px] leading-7 text-muted">כאן מוסיפים תיקים, מחליפים תמונות, מעדכנים מחירים ורואים הזמנות.</p>
 
-          {isAuthenticated && (
-            <form action={logoutAdmin}>
-              <button type="submit" className="button-light rounded-full px-5 py-3">
-                יציאה
-              </button>
-            </form>
-          )}
-        </div>
-
-        {!adminConfigured && (
+        {!configured && (
           <SetupBox
             title="חסרה סיסמת ניהול"
-            body="צריך להגדיר משתנה ADMIN_PASSWORD — זו הסיסמה לכניסה למסך הניהול."
+            body="צריך להגדיר משתנה ADMIN_PASSWORD. זו הסיסמה לכניסה למסך הניהול."
             steps={[
-              "ב-Vercel: Project Settings → Environment Variables → הוסיפי ADMIN_PASSWORD עם סיסמה חזקה (ואז Redeploy).",
-              "לעבודה מקומית: הריצי בטרמינל בתיקיית הפרויקט: vercel env pull .env.local — זה ימשוך את כל המשתנים מ-Vercel.",
+              "בוורסל: Project Settings, Environment Variables, והוסיפי ADMIN_PASSWORD עם סיסמה חזקה (ואז Redeploy).",
+              "לעבודה מקומית: vercel env pull .env.local --environment=production",
             ]}
           />
         )}
 
-        {adminConfigured && !hasServiceKey && (
+        {configured && !hasServiceKey && (
           <SetupBox
             title="חסר מפתח ניהול של Supabase"
-            body="צריך SUPABASE_SERVICE_ROLE_KEY כדי שהאדמין יוכל לשמור מוצרים ולהעלות תמונות. המפתח נשאר בצד השרת בלבד ולעולם לא נחשף לדפדפן."
+            body="צריך SUPABASE_SERVICE_ROLE_KEY כדי שהאדמין יוכל לשמור תיקים ולהעלות תמונות. המפתח נשאר בצד השרת ולעולם לא נחשף לדפדפן."
             steps={[
-              "אם את עובדת מקומית (localhost) והאתר החי כן עובד — הריצי: vercel env pull .env.local ואז הפעילי מחדש את השרת. זה הפתרון הנפוץ.",
-              "אם גם באתר החי חסר — ב-Supabase: Project Settings → API → service_role key, והוסיפי אותו ב-Vercel בשם SUPABASE_SERVICE_ROLE_KEY.",
+              "ב-Supabase: Project Settings, API, והעתיקי את מפתח ה-service_role (או ה-secret).",
+              "הוסיפי אותו בוורסל בשם SUPABASE_SERVICE_ROLE_KEY ואז Redeploy. לעבודה מקומית: שורה בקובץ .env.local.",
             ]}
           />
         )}
 
-        {adminConfigured && hasServiceKey && !isAuthenticated && <AdminLogin />}
-
-        {adminConfigured && hasServiceKey && isAuthenticated && <AdminContent />}
+        {configured && hasServiceKey && (
+          <>
+            <AdminLogin />
+            <p className="mt-4 text-center text-[13px] text-muted">מטעמי אבטחה, החיבור מתנתק אוטומטית אחרי עד {getAdminSessionTtlMinutes()} דקות.</p>
+          </>
+        )}
       </div>
     </main>
-  );
-}
-
-async function AdminContent() {
-  let loaded;
-  try {
-    loaded = await Promise.all([getAdminProducts(), getRecentOrders(), getAdminSiteContent()]);
-  } catch (error) {
-    // Never render the panel as if the database were simply empty: that is how
-    // an outage looks exactly like "all my bags disappeared", and saving a new
-    // bag against an empty list would reuse an id that is already taken.
-    console.error("[admin] failed to load admin data:", error);
-    return (
-      <SetupBox
-        title="אין חיבור למסד הנתונים"
-        body="התיקים וההזמנות לא נטענו, ולכן אין להוסיף או לערוך תיקים כרגע — שמירה עכשיו עלולה לדרוס תיק קיים. התיקים עצמם לא נמחקו; רק החיבור ל-Supabase לא עובד."
-        steps={[
-          "ב-Supabase Dashboard: אם הפרויקט מופיע כ-Paused — לחצי Restore. פרויקט בחינם עובר להשהיה אחרי כשבוע בלי שימוש, והנתונים חוזרים אחרי השחזור.",
-          "אם הפרויקט פעיל: Project Settings → API, והשוואת ה-Project URL למשתנה NEXT_PUBLIC_SUPABASE_URL ב-Vercel. אם ה-URL השתנה, יש לעדכן אותו ואת שני המפתחות ואז Redeploy.",
-        ]}
-      />
-    );
-  }
-
-  const [products, orders, siteContent] = loaded;
-  const activeOrders = orders.filter(isActiveOrder);
-  const monthOrders = orders.filter(isCurrentMonthOrder);
-  const paidOrders = orders.filter((order) => order.payment_status === "paid");
-
-  return (
-    <div className="mt-10 grid gap-12">
-      <section className="grid gap-4 md:grid-cols-4">
-        <StatCard label="בתור הזמנות" value={activeOrders.length} highlight />
-        <StatCard label="הזמנות החודש" value={monthOrders.length} />
-        <StatCard label="שולמו" value={paidOrders.length} />
-        <StatCard label="מוצרים" value={products.length} />
-      </section>
-
-      {/* Quick in-page navigation */}
-      <nav className="flex flex-wrap gap-3 text-[12px] font-bold">
-        <a href="#admin-orders" className="rounded-full border border-line bg-white/70 px-5 py-2.5 hover:border-ink">
-          הזמנות ({activeOrders.length})
-        </a>
-        <a href="#admin-new" className="rounded-full border border-line bg-white/70 px-5 py-2.5 hover:border-ink">
-          הוספת תיק
-        </a>
-        <a href="#admin-products" className="rounded-full border border-line bg-white/70 px-5 py-2.5 hover:border-ink">
-          תיקים קיימים ({products.length})
-        </a>
-        <a href="#admin-content" className="rounded-full border border-line bg-white/70 px-5 py-2.5 hover:border-ink">
-          טקסטים באתר
-        </a>
-      </nav>
-
-      <section id="admin-orders" className="scroll-mt-8">
-        <h2 className="mb-1 text-2xl font-semibold">הזמנות</h2>
-        <p className="mb-4 text-[14px] text-muted">
-          התור היומי שלך — הזמנות חדשות בראש, וסימון מהיר של בטיפול / שולם / בוטל.
-        </p>
-        <OrdersPanel orders={orders} />
-      </section>
-
-      <section id="admin-new" className="scroll-mt-8">
-        <h2 className="mb-1 text-2xl font-semibold">הוספת תיק חדש</h2>
-        <p className="mb-4 text-[14px] text-muted">
-          אפשר לשמור גם בלי למלא הכל — תיק חסר פרטים יישמר כטיוטה ולא יוצג באתר עד השלמה.
-        </p>
-        <ProductForm />
-      </section>
-
-      <section id="admin-products" className="scroll-mt-8">
-        <h2 className="mb-1 text-2xl font-semibold">תיקים קיימים</h2>
-        <p className="mb-4 text-[14px] text-muted">
-          עריכה, החלפת תמונות, הסתרה מהאתר או מחיקה — כל שינוי מתעדכן באתר מיד.
-        </p>
-        <AdminProductsPanel products={products} />
-      </section>
-
-      <section id="admin-content" className="scroll-mt-8">
-        <h2 className="mb-1 text-2xl font-semibold">טקסטים באתר</h2>
-        <p className="mb-4 text-[14px] text-muted">
-          משפטים כלליים שאפשר לעדכן בלי לפתוח קוד. מדיניות מסירה והחלפות נוסיף אחרי אישור מול סמדר.
-        </p>
-        <SiteContentForm content={siteContent} />
-      </section>
-    </div>
-  );
-}
-
-function StatCard({
-  label,
-  value,
-  highlight = false,
-}: {
-  label: string;
-  value: number;
-  highlight?: boolean;
-}) {
-  return (
-    <div
-      className={`rounded-3xl border p-5 shadow-sm ${
-        highlight ? "border-ink bg-ink text-cream" : "border-line bg-white/80"
-      }`}
-    >
-      <p className={`eyebrow ${highlight ? "text-gold" : "text-gold"}`}>{label}</p>
-      <p className="mt-2 text-4xl font-bold">{value}</p>
-    </div>
-  );
-}
-
-function isActiveOrder(order: { status: string; payment_status: string }) {
-  return !(
-    order.payment_status === "paid" ||
-    order.payment_status === "cancelled" ||
-    order.status === "paid" ||
-    order.status === "delivered" ||
-    order.status === "cancelled"
-  );
-}
-
-function isCurrentMonthOrder(order: { created_at: string }) {
-  const date = new Date(order.created_at);
-  const now = new Date();
-  return date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth();
-}
-
-function SetupBox({
-  title,
-  body,
-  steps,
-}: {
-  title: string;
-  body: string;
-  steps?: string[];
-}) {
-  return (
-    <div className="mt-10 rounded-3xl border border-gold/40 bg-white/85 p-6">
-      <p className="eyebrow text-gold">צריך הגדרה חד-פעמית</p>
-      <h2 className="mt-2 text-2xl font-semibold">{title}</h2>
-      <p className="mt-3 leading-7 text-muted">{body}</p>
-      {steps && steps.length > 0 && (
-        <ol className="mt-4 grid gap-2">
-          {steps.map((step, i) => (
-            <li key={i} className="flex gap-3 rounded-2xl border border-line bg-cream/60 p-3 text-[14px] leading-7">
-              <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-ink text-[12px] font-bold text-cream">
-                {i + 1}
-              </span>
-              <span dir="auto">{step}</span>
-            </li>
-          ))}
-        </ol>
-      )}
-    </div>
   );
 }
