@@ -7,7 +7,7 @@ import { type Product } from "@/lib/catalog/types";
 import { useCart } from "../context/CartContext";
 import { serifDisplay } from "../fonts";
 import { STRIP_CARD_SIZES } from "@/lib/images/sizes";
-import ProductImage from "./product/ProductImage";
+import ProductCover from "./product/ProductCover";
 
 export default function ProductCarousel({ products }: { products: Product[] }) {
   const { setActiveProduct } = useCart();
@@ -152,13 +152,11 @@ export default function ProductCarousel({ products }: { products: Product[] }) {
               className="block w-full text-right"
             >
               <div className="shimmer relative aspect-[4/5] overflow-hidden rounded-[24px] bg-bone shadow-[0_24px_60px_-40px_rgba(17,17,17,0.55)] ring-1 ring-line/50">
-                <ProductImage
+                <ProductCover
                   product={p}
-                  src={p.image}
-                  alt={p.alt}
+                  sizes={STRIP_CARD_SIZES}
                   draggable={false}
                   eager={i < 5}
-                  sizes={STRIP_CARD_SIZES}
                   className="transition duration-700 ease-editorial group-hover:scale-[1.05]"
                 />
                 {/* Gallery feel: name fades in softly on hover only — no price, no shop chrome */}

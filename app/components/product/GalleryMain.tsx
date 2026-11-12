@@ -1,4 +1,5 @@
 import type { Product } from "@/lib/catalog/types";
+import type { Frame } from "@/lib/images/crop";
 import ProductImage from "./ProductImage";
 import type { GalleryState } from "./useGallery";
 
@@ -10,6 +11,7 @@ export default function GalleryMain({
   sizes,
   controls = true,
   preload = false,
+  frame = "card",
 }: {
   product: Product;
   gallery: GalleryState;
@@ -17,12 +19,14 @@ export default function GalleryMain({
   controls?: boolean;
   // True only where this photo is the main one of the whole page.
   preload?: boolean;
+  // "card" applies the owner's saved crop; "full" always shows the whole photo.
+  frame?: Frame;
 }) {
   const { images, selected, activeIndex, show } = gallery;
 
   return (
     <>
-      <ProductImage product={product} src={selected} alt={product.alt} sizes={sizes} eager preload={preload} />
+      <ProductImage product={product} src={selected} alt={product.alt} sizes={sizes} frame={frame} eager preload={preload} />
       {controls && images.length > 1 && (
         <div className="absolute inset-x-5 bottom-5 flex items-center justify-between">
           <button

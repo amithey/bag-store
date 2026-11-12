@@ -7,7 +7,7 @@ import Footer from "../../components/Footer";
 import { getCatalogForCache } from "@/lib/catalog/queries";
 import { isSoldOut } from "@/lib/productStock";
 import { absoluteUrl, siteUrl } from "@/lib/site";
-import ProductImage from "../../components/product/ProductImage";
+import ProductCover from "../../components/product/ProductCover";
 import ProductGallery from "../../components/product/ProductGallery";
 import ProductPageActions from "./ProductPageActions";
 
@@ -164,10 +164,8 @@ export default async function ProductPage({ params }: Props) {
                     className="group block overflow-hidden rounded-[22px] bg-white/60 ring-1 ring-line/60 transition hover:ring-ink/30"
                   >
                     <div className="relative aspect-[4/5] overflow-hidden bg-bone">
-                      <ProductImage
+                      <ProductCover
                         product={p}
-                        src={p.image}
-                        alt={p.alt}
                         sizes="(min-width: 768px) 30vw, 100vw"
                         className="transition duration-700 ease-editorial group-hover:scale-105"
                       />

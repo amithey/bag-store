@@ -64,11 +64,11 @@ export default function ProductModal() {
           </button>
 
           <div className="relative hidden bg-bone md:col-span-6 md:block md:h-[88vh] md:max-h-[760px]">
-            <GalleryMain product={activeProduct} gallery={gallery} sizes="50vw" />
+            <GalleryMain product={activeProduct} gallery={gallery} sizes="50vw" frame="full" />
           </div>
 
           <div className="flex max-h-[94vh] flex-col overflow-y-auto md:col-span-6">
-            <div className="relative aspect-[16/10] bg-bone md:hidden">
+            <div className="relative aspect-[4/5] bg-bone md:hidden">
               <GalleryMain product={activeProduct} gallery={gallery} sizes="100vw" controls={false} />
             </div>
 
@@ -81,7 +81,7 @@ export default function ProductModal() {
                       {activeIndex + 1} מתוך {images.length}
                     </span>
                   </div>
-                  <GalleryThumbs product={activeProduct} gallery={gallery} padding="p-1" />
+                  <GalleryThumbs product={activeProduct} gallery={gallery} />
                 </div>
               )}
 

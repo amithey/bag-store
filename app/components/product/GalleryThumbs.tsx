@@ -6,12 +6,10 @@ import type { GalleryState } from "./useGallery";
 export default function GalleryThumbs({
   product,
   gallery,
-  padding,
   className = "",
 }: {
   product: Product;
   gallery: GalleryState;
-  padding?: string;
   className?: string;
 }) {
   const { images, selected, select } = gallery;
@@ -29,7 +27,7 @@ export default function GalleryThumbs({
           }`}
           aria-label={`תמונה ${index + 1} של ${product.name}`}
         >
-          <ProductImage product={product} src={image} alt="" sizes="64px" padding={padding} />
+          <ProductImage product={product} src={image} alt="" sizes="64px" frame="thumb" />
         </button>
       ))}
     </div>

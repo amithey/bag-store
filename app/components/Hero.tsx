@@ -71,7 +71,8 @@ export default function Hero({
             <div className="soft-ring relative aspect-[4/5] overflow-hidden rounded-[28px] bg-white md:aspect-[5/4]">
               {/* The hero is always a full-bleed crop, whatever fit the bag itself uses. */}
               <ProductImage
-                product={{ imageFit: "cover" }}
+                product={{ imageSettings: {} }}
+                frame="hero"
                 src={heroImage}
                 alt={featured?.alt || "תיק סרוג בדוגמת פסים"}
                 preload

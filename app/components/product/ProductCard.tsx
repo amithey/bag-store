@@ -6,7 +6,7 @@ import type { Product } from "@/lib/catalog/types";
 import { isSoldOut } from "@/lib/productStock";
 import { useCart } from "../../context/CartContext";
 import { GRID_CARD_SIZES } from "@/lib/images/sizes";
-import ProductImage from "./ProductImage";
+import ProductCover from "./ProductCover";
 
 // A bag in the collection grid. The same component is meant to be reused by
 // the admin preview, so everything it needs comes from `product` and the cart
@@ -42,14 +42,7 @@ export default function ProductCard({
         className="block w-full text-right"
       >
         <div className="shimmer relative aspect-[4/5] overflow-hidden bg-bone">
-          <ProductImage
-            product={p}
-            src={p.image}
-            alt={p.alt}
-            eager={eager}
-            sizes={GRID_CARD_SIZES}
-            className="transition duration-[900ms] ease-editorial group-hover:scale-[1.055]"
-          />
+          <ProductCover product={p} sizes={GRID_CARD_SIZES} eager={eager} className="transition duration-[900ms] ease-editorial group-hover:scale-[1.055]" />
           <div className="absolute inset-0 bg-gradient-to-t from-ink/55 via-transparent to-transparent opacity-80" />
           <div className="absolute right-4 top-4 rounded-full bg-white/88 px-4 py-2 text-[11px] font-bold text-ink backdrop-blur-md">
             {p.price}
